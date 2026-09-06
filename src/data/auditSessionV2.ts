@@ -1,3 +1,5 @@
+import { MSGNET_SEMANTICS_VERSION } from './graphSemantics.js';
+
 export type EvidenceStatus = 'active' | 'inactive' | 'complete' | 'unavailable' | 'not_evaluated';
 export type MissingReason = string;
 
@@ -203,6 +205,18 @@ export function validateAuditSessionV2(input: unknown): AuditSessionV2Validation
   const required = ['session', 'model', 'dataset', 'checkpoint', 'audit_plan', 'samples', 'relations', 'case_evidence', 'candidate_relations', 'hypothesis_families', 'cross_sample_evidence', 'dependence_audit', 'validation', 'provenance', 'limitations'];
   for (const key of required) if (!(key in input)) errors.push(`missing ${key}`);
   if (!Array.isArray(input.samples) || !Array.isArray(input.case_evidence) || !Array.isArray(input.candidate_relations) || !Array.isArray(input.hypothesis_families) || !Array.isArray(input.cross_sample_evidence) || !Array.isArray(input.dependence_audit)) return { ok: false, errors: [...errors, 'v2 collection fields must be arrays'] };
+  if (input.model?.adapter_id === 'msgnet') {
+    const semantics = input.model.graph_semantics;
+    if (semantics?.version !== MSGNET_SEMANTICS_VERSION) return { ok: false, errors: ['MSGNet graph semantics are unverified. Regenerate this session with the corrected adapter; legacy node names and edge directions are unsafe to display.'] };
+    const labels = semantics.node_labels;
+    if (semantics.node_kind !== 'latent_graph_position' || !Array.isArray(labels) || !labels.length || labels.some((label: unknown, i: number) => label !== `G${i}`) || JSON.stringify(semantics.tensor_axes) !== '["source_node","target_node"]' || JSON.stringify(semantics.native_tensor_axes) !== '["target_node","source_node"]' || semantics.native_entry_for_edge !== 'A[target, source]') errors.push('MSGNet graph semantics metadata is invalid');
+    for (const member of [...input.candidate_relations, ...(Array.isArray(input.relations) ? input.relations : [])]) {
+      for (const role of ['source', 'target']) if (!Number.isInteger(member?.[role]) || member[role] < 0 || member[role] >= (labels?.length ?? 0) || member[`${role}_name`] !== `G${member[role]}`) errors.push('MSGNet graph labels must identify internal G nodes');
+    }
+    for (const sample of input.samples) for (const context of sample?.contexts ?? []) {
+      if (context.node_count !== labels?.length || Object.values(context.graphs ?? {}).some((tensor: any) => JSON.stringify(tensor.axis_order) !== '["source_node","target_node"]')) errors.push('MSGNet graph tensor axes must be source_node, target_node');
+    }
+  }
   const sampleIds = new Set<number>();
   input.samples.forEach((sample, index) => {
     if (!object(sample) || typeof sample.sample_index !== 'number') errors.push(`samples[${index}] is invalid`);

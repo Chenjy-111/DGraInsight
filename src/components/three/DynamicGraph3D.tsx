@@ -1,13 +1,15 @@
+import { ScrollFriendlyOrbitControls } from './ScrollFriendlyOrbitControls';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Billboard, Html, Line, OrbitControls, QuadraticBezierLine, Ring } from '@react-three/drei';
+import { Billboard, Html, Line, QuadraticBezierLine, Ring } from '@react-three/drei';
 import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { GraphEdge } from '@/types/demo';
+import { selectableWindows } from '@/data/selectableWindows';
 import { useDemoStore } from '@/store/useDemoStore';
 
 interface Props {
   variables: string[]; windows: GraphEdge[][]; activeWindow: number; target: number;
-  dynamicWindows: GraphEdge[][]; displayRatio: number;
+  displayRatio: number;
   displayThreshold: number; spacing: number; selectedNode: number | null;
   selectedEdge: { source: number; target: number } | null;
   onSelectWindow: (index: number) => void; onSelectNode: (index: number) => void;
@@ -17,24 +19,22 @@ interface Props {
 type CameraMode = 'focus' | 'overview';
 
 export function DynamicGraph3D(props: Props) {
-  const inspectorCollapsed = useDemoStore((s) => s.inspectorCollapsed);
-  const detailMode = useDemoStore((s) => s.pruningDetail);
-  const setPruningDetail = useDemoStore((s) => s.set);
+  const sample = useDemoStore(s => s.sample);
+  const availableWindows = selectableWindows(sample, props.selectedEdge);
   const [cameraMode, setCameraMode] = useState<CameraMode>('focus');
   const current = props.windows[props.activeWindow] ?? [];
-  const displayed = displayEdges(current, props.displayRatio, props.displayThreshold);
   const mean = current.length ? current.reduce((n, e) => n + Math.abs(e.weight), 0) / current.length : 0;
   const strongest = [...current].sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))[0];
 
   return (
     <div className="relative h-[920px] w-full overflow-hidden bg-[#eef3f8]">
-      <div className={`absolute left-[330px] top-20 z-10 flex items-start justify-between rounded-xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-md transition-all ${inspectorCollapsed ? 'right-12' : 'right-[370px]'}`}>
+      <div className={`absolute left-[330px] top-20 z-10 flex items-start justify-between rounded-xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur-md transition-all right-5`}>
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#718096]">Dynamic correlation laboratory</div>
-          <div className="mt-1 flex items-baseline gap-2"><span className="text-lg font-semibold text-[#233047]">Window {props.activeWindow + 1}</span><span className="text-[11px] text-[#7b879a]">{current.length} model-retained · {displayed.length} displayed · μ {mean.toFixed(3)}</span></div>
+          <div className="mt-1 flex items-baseline gap-2"><span className="text-lg font-semibold text-[#233047]">Window {props.activeWindow + 1}</span><span className="text-[11px] text-[#7b879a]">{current.length} effective edges · mean weight {mean.toFixed(3)}</span></div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setPruningDetail('pruningDetail', !detailMode)} className={`rounded-lg border px-3 py-1.5 text-[11px] font-semibold shadow-sm transition ${detailMode ? 'border-[#16827f] bg-[#16827f] text-white' : 'border-[#b9c7d5] bg-white/90 text-[#40516a] hover:border-[#16827f]'}`}>{detailMode ? 'Exit pruning detail' : 'Expand pruning process'}</button>
+
         <div className="flex rounded-lg border border-[#d6dde7] bg-white/90 p-0.5 shadow-sm backdrop-blur">
           {(['focus', 'overview'] as CameraMode[]).map((mode) => <button key={mode} onClick={() => setCameraMode(mode)} className={`rounded-md px-3 py-1.5 text-[11px] font-medium capitalize transition ${cameraMode === mode ? 'bg-[#263b59] text-white shadow-sm' : 'text-[#66748a] hover:bg-[#edf1f6]'}`}>{mode}</button>)}
         </div>
@@ -42,25 +42,24 @@ export function DynamicGraph3D(props: Props) {
       </div>
 
       <div className="pointer-events-none absolute bottom-20 left-[330px] z-10 w-[230px] rounded-lg border border-white/80 bg-white/88 p-3 shadow-[0_8px_28px_rgba(42,55,78,.12)] backdrop-blur-md">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[.14em] text-[#758196]">Current graph evidence</div>
-        <Metric label="Model-retained edges" value={String(current.length)} />
-        <Metric label="Currently displayed" value={String(displayed.length)} />
-        <Metric label="Highest stored weight" value={strongest ? `${props.variables[strongest.source]} → ${props.variables[strongest.target]}` : '—'} accent />
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[.14em] text-[#758196]">Graph summary</div>
+        <Metric label="Effective edges" value={String(current.length)} />
+        <Metric label="Highest-weight edge" value={strongest ? `${props.variables[strongest.source]} → ${props.variables[strongest.target]}` : '—'} accent />
       </div>
-      <div className={`pointer-events-none absolute bottom-20 z-10 rounded-lg border border-white/80 bg-white/85 px-3 py-2 text-[10.5px] leading-5 text-[#718096] shadow-sm backdrop-blur transition-all ${inspectorCollapsed ? 'right-12' : 'right-[370px]'}`}>
-        <div><i className="mr-2 inline-block h-1.5 w-5 rounded bg-[#16827f]" />displayed model-retained edge</div>
-        <div><i className="mr-2 inline-block h-px w-5 bg-[#aeb8c6]" />excluded by stored model mask</div>
-        <div className="mt-1 border-t border-[#e5e9ef] pt-1">Display filtering changes visibility only</div>
-        <div>Drag to orbit · wheel to zoom · select graph elements</div>
+      <div className={`pointer-events-none absolute bottom-20 z-10 rounded-lg border border-white/80 bg-white/85 px-3 py-2 text-[10.5px] leading-5 text-[#718096] shadow-sm backdrop-blur transition-all right-5`}>
+        <div><i className="mr-2 inline-block h-1.5 w-5 rounded bg-[#16827f]" />Effective relation</div>
+        <div><i className="mr-2 inline-block h-1.5 w-5 rounded bg-[#cf503d]" />Selected relation</div>
+        <div className="mt-1 border-t border-[#e5e9ef] pt-1">Arrow direction: source → target</div>
+        <div>Scroll to page · Ctrl + scroll to zoom · drag to rotate</div>
       </div>
 
-      <div className={`absolute bottom-6 left-[330px] z-20 transition-all ${inspectorCollapsed ? 'right-12' : 'right-[370px]'}`}>
+      <div className={`absolute bottom-6 left-[330px] z-20 transition-all right-5`}>
         <div className="relative flex items-center justify-between px-2">
           <div className="absolute left-3 right-3 top-1/2 h-px -translate-y-1/2 bg-[#bfc9d6]" />
           <div className="absolute left-3 top-1/2 h-[2px] -translate-y-1/2 bg-[#16827f] transition-all duration-700" style={{ width: `calc(${props.windows.length > 1 ? props.activeWindow / (props.windows.length - 1) * 100 : 0}% - 12px)` }} />
-          {props.windows.map((_, i) => <button key={i} onClick={() => props.onSelectWindow(i)} aria-label={`Select window ${i + 1}`} className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-[9px] font-semibold shadow-sm transition-all duration-300 ${i === props.activeWindow ? 'scale-110 border-[#16827f] bg-[#16827f] text-white' : i < props.activeWindow ? 'border-[#62aaa7] bg-[#e7f4f3] text-[#167a77]' : 'border-[#c9d1dc] bg-white text-[#718096] hover:border-[#16827f]'}`}>{i + 1}</button>)}
+          {availableWindows.map(i => <button key={i} onClick={() => props.onSelectWindow(i)} aria-label={`Select window ${i + 1}`} className={`relative flex h-7 w-7 items-center justify-center rounded-full border text-[9px] font-semibold shadow-sm transition-all duration-300 ${i === props.activeWindow ? 'scale-110 border-[#16827f] bg-[#16827f] text-white' : i < props.activeWindow ? 'border-[#62aaa7] bg-[#e7f4f3] text-[#167a77]' : 'border-[#c9d1dc] bg-white text-[#718096] hover:border-[#16827f]'}`}>{i + 1}</button>)}
         </div>
-        <div className="mt-2 flex justify-between px-1 text-[9px] font-medium uppercase tracking-[.12em] text-[#8793a5]"><span>earlier context</span><span>dynamic correlation evolution</span><span>latest context</span></div>
+        <div className="mt-2 flex justify-between px-1 text-[9px] font-medium uppercase tracking-[.12em] text-[#8793a5]"><span>graph context</span><span>native graph context index</span><span>graph context</span></div>
       </div>
 
       <Canvas
@@ -74,9 +73,9 @@ export function DynamicGraph3D(props: Props) {
         <ambientLight intensity={1.15} />
         <directionalLight position={[4, 7, 8]} intensity={1.5} />
         <pointLight position={[-4, 2, 4]} color="#9dd8d5" intensity={1.4} />
-        <CameraRig activeWindow={detailMode ? 0 : props.activeWindow} count={detailMode ? 1 : props.windows.length} spacing={props.spacing} mode={detailMode ? 'overview' : cameraMode} />
-        {detailMode ? <PruningDetail {...props} /> : <GraphLaboratory {...props} />}
-        <OrbitControls makeDefault enableDamping dampingFactor={0.07} minDistance={6} maxDistance={24} enablePan={false} />
+        <CameraRig activeWindow={props.activeWindow} count={props.windows.length} spacing={props.spacing} mode={cameraMode} />
+        <GraphLaboratory {...props} />
+        <ScrollFriendlyOrbitControls />
       </Canvas>
     </div>
   );
@@ -112,53 +111,25 @@ function GraphLaboratory(props: Props) {
   </group>;
 }
 
-function PruningDetail(props: Props) {
-  const radius = 2.15;
-  const positions = useMemo(() => props.variables.map((_, i) => {
-    const a = i / props.variables.length * Math.PI * 2 - Math.PI / 2;
-    return new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0);
-  }), [props.variables]);
-  const dynamic = props.dynamicWindows[props.activeWindow] ?? [];
-  const sparse = props.windows[props.activeWindow] ?? [];
-  const candidates = dynamic.filter((e) => e.weight > 0).length;
-  const retained = sparse.length;
-  const retainedRatio = candidates ? retained / candidates : 0;
-  return <group position={[0, -.15, 0]}>
-    <WindowGraph {...props} edges={dynamic} windowIndex={props.activeWindow} active positionX={-3.8} positions={positions} stageLabel={`BEFORE · ${candidates} positive entries`} stageTone="before" filteredVisible bypassDisplayFilter />
-    <WindowGraph {...props} edges={sparse} windowIndex={props.activeWindow} active positionX={3.8} positions={positions} stageLabel={`AFTER · ${retained} model-retained edges`} stageTone="after" bypassDisplayFilter />
-    <Billboard position={[0, .4, .8]}><Html center distanceFactor={8}><div className="w-[190px] rounded-xl border border-[#c9d4df] bg-white/95 p-4 text-center shadow-xl backdrop-blur">
-      <div className="text-[9px] font-semibold uppercase tracking-[.16em] text-[#77869a]">Stored model sparsification</div>
-      <div className="my-2 font-serif text-[18px] text-[#26364d]">Ẽ<sub>w</sub> = M<sub>w</sub> ⊙ E<sub>w</sub></div>
-      <div className="h-2 overflow-hidden rounded-full bg-[#e5eaf0]"><div className="h-full bg-[#16827f] transition-all duration-500" style={{ width: `${retainedRatio * 100}%` }} /></div>
-      <div className="mt-1.5 text-[10px] text-[#6f7d90]">Exact retained state from the checkpoint-replayed artifact</div>
-      <div className="mt-2 grid grid-cols-3 gap-1 border-t border-[#e3e8ee] pt-2 text-[9px]"><span><b className="block text-[#344158]">{candidates}</b>positive</span><span><b className="block text-[#a06052]">{candidates - retained}</b>excluded</span><span><b className="block text-[#16827f]">{retained}</b>retained</span></div>
-      <div className="mt-3 flex items-center justify-center gap-1 text-[10px] font-semibold text-[#16827f]"><span>rank</span><span>→</span><span>mask</span><span>→</span><span>propagate</span></div>
-    </div></Html></Billboard>
-    {positions.map((p, i) => <Line key={i} points={[[-3.8 + p.x, p.y, -.05], [3.8 + p.x, p.y, -.05]]} color={i === props.target ? '#cf503d' : '#b9c5d2'} lineWidth={i === props.target ? 1 : .45} dashed dashSize={.08} gapSize={.1} transparent opacity={i === props.target ? .28 : .1} />)}
-  </group>;
-}
-
-function WindowGraph({ edges, windowIndex, active, positionX, positions, stageLabel, stageTone = 'normal', filteredVisible = false, bypassDisplayFilter = false, ...props }: Props & { edges: GraphEdge[]; windowIndex: number; active: boolean; positionX: number; positions: THREE.Vector3[]; stageLabel?: string; stageTone?: 'normal' | 'before' | 'after'; filteredVisible?: boolean; bypassDisplayFilter?: boolean }) {
+function WindowGraph({ edges, windowIndex, active, positionX, positions, ...props }: Props & { edges: GraphEdge[]; windowIndex: number; active: boolean; positionX: number; positions: THREE.Vector3[] }) {
   const [hoverNode, setHoverNode] = useState<number | null>(null);
-  const visible = bypassDisplayFilter
-    ? edges.filter((edge) => edge.weight > 0)
-    : displayEdges(edges.filter((edge) => edge.kept), props.displayRatio, props.displayThreshold);
+  const visible = displayEdges(edges.filter((edge) => edge.kept), props.displayRatio, props.displayThreshold);
   return <group
     position={[positionX, 0, active ? .35 : -.4]}
     rotation={[THREE.MathUtils.degToRad(-4), THREE.MathUtils.degToRad(-27), THREE.MathUtils.degToRad(-1.5)]}
     scale={active ? 1.04 : .76}
   >
     <mesh onClick={(e) => { e.stopPropagation(); props.onClearSelection(windowIndex); }}>
-      <circleGeometry args={[2.65, 72]} /><meshPhysicalMaterial color={stageTone === 'before' ? '#fff7f3' : stageTone === 'after' ? '#f2fbf8' : active ? '#f7ffff' : '#ffffff'} transparent opacity={active ? .9 : .28} roughness={.82} transmission={active ? .05 : 0} depthWrite={false} />
+      <circleGeometry args={[2.65, 72]} /><meshPhysicalMaterial color={active ? '#f7ffff' : '#ffffff'} transparent opacity={active ? .9 : .28} roughness={.82} transmission={active ? .05 : 0} depthWrite={false} />
     </mesh>
-    <Ring args={[2.61, 2.66, 72]} position={[0, 0, .015]}><meshBasicMaterial color={stageTone === 'before' ? '#b86754' : active ? '#16827f' : '#b8c2cf'} transparent opacity={active ? .9 : .25} /></Ring>
-    <Billboard position={[0, 2.92, .1]}><Html center distanceFactor={8} style={{ pointerEvents: 'none' }}><div className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wide shadow-sm ${active ? 'border-[#16827f] bg-[#16827f] text-white' : 'border-[#d5dbe4] bg-white/80 text-[#7b8797]'}`}>{stageLabel ?? `WINDOW ${windowIndex + 1}`}</div></Html></Billboard>
-    {visible.map((edge, i) => <CorrelationEdge key={`${edge.source}-${edge.target}-${i}`} edge={edge} variables={props.variables} active={active} revealPruned={filteredVisible} selected={active && props.selectedEdge?.source === edge.source && props.selectedEdge?.target === edge.target} dimmed={props.selectedNode != null && edge.source !== props.selectedNode && edge.target !== props.selectedNode} a={positions[edge.source]} b={positions[edge.target]} onClick={() => { props.onSelectWindow(windowIndex); props.onSelectEdge(edge, windowIndex); }} />)}
+    <Ring args={[2.61, 2.66, 72]} position={[0, 0, .015]}><meshBasicMaterial color={active ? '#16827f' : '#b8c2cf'} transparent opacity={active ? .9 : .25} /></Ring>
+    <Billboard position={[0, 2.92, .1]}><Html center distanceFactor={8} style={{ pointerEvents: 'none' }}><div className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wide shadow-sm ${active ? 'border-[#16827f] bg-[#16827f] text-white' : 'border-[#d5dbe4] bg-white/80 text-[#7b8797]'}`}>{`WINDOW ${windowIndex + 1}`}</div></Html></Billboard>
+    {visible.map((edge, i) => <CorrelationEdge key={`${edge.source}-${edge.target}-${i}`} edge={edge} variables={props.variables} active={active} selected={active && props.selectedEdge?.source === edge.source && props.selectedEdge?.target === edge.target} dimmed={props.selectedNode != null && edge.source !== props.selectedNode && edge.target !== props.selectedNode} a={positions[edge.source]} b={positions[edge.target]} onClick={() => { props.onSelectWindow(windowIndex); props.onSelectEdge(edge, windowIndex); }} />)}
     {positions.map((p, ni) => <Node key={ni} p={p} name={props.variables[ni]} active={active} target={ni === props.target} selected={ni === props.selectedNode} hovered={ni === hoverNode} onHover={(v) => setHoverNode(v ? ni : null)} onClick={() => { props.onSelectWindow(windowIndex); props.onSelectNode(ni); }} />)}
   </group>;
 }
 
-function CorrelationEdge({ edge, variables, active, revealPruned = false, selected, dimmed, a, b, onClick }: { edge: GraphEdge; variables: string[]; active: boolean; revealPruned?: boolean; selected: boolean; dimmed: boolean; a: THREE.Vector3; b: THREE.Vector3; onClick: () => void }) {
+function CorrelationEdge({ edge, variables, active, selected, dimmed, a, b, onClick }: { edge: GraphEdge; variables: string[]; active: boolean; selected: boolean; dimmed: boolean; a: THREE.Vector3; b: THREE.Vector3; onClick: () => void }) {
   const particle = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const bend = new THREE.Vector3((a.x + b.x) / 2, (a.y + b.y) / 2, .22 + a.distanceTo(b) * .12);
@@ -167,10 +138,10 @@ function CorrelationEdge({ edge, variables, active, revealPruned = false, select
     const t = (clock.elapsedTime * (.18 + Math.abs(edge.weight) * .25) + edge.source * .13) % 1;
     const p = new THREE.QuadraticBezierCurve3(a, bend, b).getPoint(t); particle.current.position.copy(p);
   });
-  const color = selected ? '#cf503d' : edge.kept ? '#16827f' : revealPruned ? '#b45d49' : '#aeb8c6';
-  const opacity = dimmed ? .05 : hovered || selected ? 1 : active ? edge.kept ? .88 : revealPruned ? .72 : .16 : .14;
+  const color = selected ? '#cf503d' : edge.kept ? '#16827f' : '#aeb8c6';
+  const opacity = dimmed ? .05 : hovered || selected ? 1 : active ? edge.kept ? .88 : .16 : .14;
   return <group onClick={(e) => { e.stopPropagation(); onClick(); }} onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default'; }}>
-    <QuadraticBezierLine start={a} end={b} mid={bend} color={color} lineWidth={hovered ? 4 : selected ? 4.2 : edge.kept ? 1.25 + Math.abs(edge.weight) * 2.7 : revealPruned ? 1.25 : .55} dashed={!edge.kept} dashSize={.06} gapSize={.045} transparent opacity={opacity} />
+    <QuadraticBezierLine start={a} end={b} mid={bend} color={color} lineWidth={hovered ? 4 : selected ? 4.2 : edge.kept ? 1.25 + Math.abs(edge.weight) * 2.7 : .55} dashed={!edge.kept} dashSize={.06} gapSize={.045} transparent opacity={opacity} />
     {active && edge.kept && !dimmed && <mesh ref={particle}><sphereGeometry args={[selected ? .055 : .035, 10, 10]} /><meshBasicMaterial color={selected ? '#ef8a72' : '#63c8c2'} transparent opacity={.9} /></mesh>}
     {hovered && <Billboard position={bend}><Html center distanceFactor={8} style={{ pointerEvents: 'none' }}><div className="min-w-[150px] rounded-lg border border-[#cfd7e2] bg-white/95 p-2.5 text-[10px] shadow-xl backdrop-blur">
       <div className="font-semibold text-[#26364d]">{variables[edge.source]} → {variables[edge.target]}</div>

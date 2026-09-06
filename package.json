@@ -11,7 +11,9 @@
     "test:web-graph-regression": "node tests/webGraphRegression.mjs",
     "test:web-session-v2": "npm run test:session-v2-validator && node tests/sessionV2WebRegression.mjs && node tests/customAdapterWebRegression.mjs",
     "preview": "vite preview --config vite.config.ts",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist",
+    "test:performance": "node tests/performanceRegression.mjs",
+    "test:performance-browser": "node tests/performanceBrowserRegression.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

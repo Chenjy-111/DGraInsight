@@ -138,3 +138,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+.performance-summary td,.performance-summary th { padding: 12px 14px; border-bottom: 1px solid #e5e9ef; }
+.performance-summary th { font-size: 12px; color: #586777; }
+.performance-summary td { font-variant-numeric: tabular-nums; font-size: 13px; }
+.performance-summary h3 {font-weight:600;font-size:18px;}
+.performance-summary { font-family: Inter, "Microsoft YaHei", "PingFang SC", sans-serif; scroll-margin-top: 65px; }

@@ -1,0 +1,35 @@
+{
+  "model": "dgraformer",
+  "torch": "2.14.0+cpu",
+  "device": "cpu",
+  "checkpoint_sha256": "f6abbd4e9b32ae80851f42d5476069c41c66b900b181f9f24c56d445a1cead9f",
+  "atol": 1e-05,
+  "rtol": 1e-05,
+  "baseline_count": 40,
+  "case_count": 361,
+  "noop_max_abs": 0.0,
+  "baseline_max_abs": 1.9073486328125e-06,
+  "prediction_max_abs": 2.1457672119140625e-06,
+  "input_max_abs": 0.0,
+  "truth_max_abs": 0.0,
+  "direct_native_max_abs": 0.0,
+  "input_checked": 1,
+  "input_unavailable": 39,
+  "native_graph_checked": 0,
+  "direct_native_checked": 0,
+  "metric_delta_max_abs": {
+    "mae": 4.063449093871796e-08,
+    "mse": 7.405617252764785e-08
+  },
+  "metric_direction_changes": {
+    "mae": 0,
+    "mse": 0
+  },
+  "direction_change_cases": [],
+  "failures": [],
+  "source_sha256": {
+    "models/DGraFormer.py": "dbfd103577e6f54109642f0f3ce884ede54aab16c6bcef634f2b763f3257b35d",
+    "layers/DGraFormer_framework.py": "68ce6d05c68aa2fd901298297220b6d97b41e66b6812c124317ef77c763f36c4"
+  },
+  "status": "PASS"
+}

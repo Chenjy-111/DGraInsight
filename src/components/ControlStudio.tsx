@@ -1,25 +1,26 @@
 import { useEffect, type ReactNode } from 'react';
 import { Pause, Play, RotateCcw, FileDown } from 'lucide-react';
 import { useDemoStore } from '@/store/useDemoStore';
+import { selectableWindows } from '@/data/selectableWindows';
 import { DATASETS } from '@/data/datasets';
 import { download } from '@/engine/narrativeGenerator';
 import { Select } from './ui/Select';
 import { Slider } from './ui/Slider';
-import { Toggle } from './ui/Toggle';
 import { Tabs } from './ui/Tabs';
 import { Button } from './ui/Button';
-import type { GraphLayout, GraphSource, ScaleId, ViewMode } from '@/types/demo';
+import type { GraphLayout, ViewMode } from '@/types/demo';
 
 export function ControlStudio() {
   const s = useDemoStore();
   const sample = s.sample;
-  const nWindows = sample?.windows.length ?? 1;
+  const windows = selectableWindows(sample, s.selectedEdge);
 
   useEffect(() => {
     if (!s.playing) return;
     const id = setInterval(() => {
       const state = useDemoStore.getState();
-      state.set('windowIdx', (state.windowIdx + 1) % (state.sample?.windows.length ?? 1));
+      const available = selectableWindows(state.sample, state.selectedEdge);
+      if (available.length > 1) state.set('windowIdx', available[(available.indexOf(state.windowIdx) + 1) % available.length]);
     }, 1100);
     return () => clearInterval(id);
   }, [s.playing]);
@@ -30,6 +31,7 @@ export function ControlStudio() {
   return (
     <div className="space-y-5">
       <Group title="Case">
+        <Field label="Sample"><Select value={s.sampleId} onChange={n => s.setCase({sampleId:n})} options={[0,1,2,3,4].map(value => ({value,label:`sample ${value}`}))} ariaLabel="Graph sample"/></Field>
         <div className="text-[12px] text-ink-500">Dataset: ETTh1 · {DATASETS.ETTh1.variables.length} variables</div>
         <Field label="Target variable">
           <Select<number>
@@ -52,7 +54,6 @@ export function ControlStudio() {
           options={[
             { value: 'forecast', label: 'Forecast' },
             { value: 'graph', label: 'Dynamic graph' },
-            { value: 'attention', label: 'Attention' },
           ]}
           size="sm"
           wrap
@@ -70,61 +71,14 @@ export function ControlStudio() {
             >
               {s.playing ? 'Pause' : 'Play'}
             </Button>
-            <span className="data-num text-[12px] text-ink-400">window {s.windowIdx + 1}/{nWindows}</span>
+            <span className="data-num text-[12px] text-ink-400">Window {s.windowIdx + 1} · {windows.length} available</span>
           </div>
-          <Slider
-            label="Window"
-            value={s.windowIdx}
-            min={0}
-            max={Math.max(0, nWindows - 1)}
-            onChange={(windowIdx) => {
-              s.set('windowIdx', windowIdx);
-              s.log('Window slider', undefined, `window ${windowIdx + 1}`);
-            }}
-            format={(value) => `#${value + 1}`}
-          />
-
-          {s.graphLayout === 'matrix' && (
-            <Field label="Stored graph stage">
-              <Select<GraphSource>
-                value={s.graphSource}
-                onChange={(source) => s.set('graphSource', source)}
-                options={[
-                  { value: 'static', label: 'Stored static prior' },
-                  { value: 'dynamic', label: 'Stored learned score' },
-                  { value: 'sparse', label: 'Stored message-passing graph' },
-                  { value: 'difference', label: 'Derived display: score − prior' },
-                ]}
-                ariaLabel="Stored graph stage"
-              />
-            </Field>
-          )}
-
-          {s.graphLayout === '3d-timeline' && (
-            <>
-              <Slider
-                label="Display strongest retained edges"
-                value={s.topkRatio}
-                min={0.05}
-                max={1}
-                step={0.05}
-                onChange={(ratio) => s.set('topkRatio', ratio)}
-                format={(ratio) => `${Math.round(ratio * 100)}%`}
-              />
-              <Slider
-                label="Display weight threshold"
-                value={s.edgeThreshold}
-                min={0}
-                max={1}
-                step={0.05}
-                onChange={(threshold) => s.set('edgeThreshold', threshold)}
-                format={(threshold) => threshold.toFixed(2)}
-              />
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] leading-relaxed text-amber-900">
-                Display only. These controls hide model-retained artifact edges by stored weight; they do not change the model mask, predictions, interventions, controls, or statistical results.
-              </p>
-            </>
-          )}
+          <Field label="Window">
+            <Select value={windows.includes(s.windowIdx) ? s.windowIdx : -1} onChange={windowIdx => { if (windowIdx >= 0) s.set('windowIdx',windowIdx); }} options={[
+              ...(!windows.includes(s.windowIdx) ? [{value:-1,label:'Select an available window'}] : []),
+              ...windows.map(value => ({value,label:`Window ${value+1}`}))
+            ]} ariaLabel="Graph window"/>
+          </Field>
 
           <Field label="Layout">
             <Tabs<GraphLayout>
@@ -132,7 +86,6 @@ export function ControlStudio() {
               onChange={(layout) => s.set('graphLayout', layout)}
               options={[
                 { value: 'matrix', label: 'Matrix' },
-                { value: 'sidebyside', label: 'Side' },
                 { value: '3d-timeline', label: '3D timeline' },
               ]}
               size="sm"
@@ -151,35 +104,6 @@ export function ControlStudio() {
               format={(spacing) => spacing.toFixed(1)}
             />
           )}
-        </Group>
-      )}
-
-      {s.view === 'attention' && (
-        <Group title="Stored attention">
-          <Field label="Patch resolution">
-            <Tabs<ScaleId>
-              value={s.scale}
-              onChange={(scale) => s.set('scale', scale)}
-              options={[
-                { value: 1, label: 'S1 · fine' },
-                { value: 2, label: 'S2 · medium' },
-                { value: 3, label: 'S3 · coarse' },
-              ]}
-              size="sm"
-              wrap
-            />
-          </Field>
-          <Field label="Head">
-            <Tabs<number>
-              value={s.head}
-              onChange={(head) => s.set('head', head)}
-              options={[0, 1, 2, 3].map((head) => ({ value: head, label: `H${head}` }))}
-              size="sm"
-              wrap
-            />
-          </Field>
-          <Toggle checked={s.showPatchBoundary} onChange={(value) => s.set('showPatchBoundary', value)} label="Show patch boundary" />
-          <Toggle checked={s.linkAttention} onChange={(value) => s.set('linkAttention', value)} label="Link hover highlight to forecast" />
         </Group>
       )}
 
@@ -212,8 +136,6 @@ function stateSnapshot() {
     graphSource: state.graphSource,
     displayFilter: { strongestRetainedRatio: state.topkRatio, minimumStoredWeight: state.edgeThreshold },
     displayFilterAffectsModelResults: false,
-    scale: state.scale,
-    head: state.head,
     selectedEdge: state.selectedEdge,
     selectedNode: state.selectedNode,
   };

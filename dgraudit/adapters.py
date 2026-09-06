@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 import torch
 import torch.nn.functional as F
+from .msgnet_semantics import native_edge_indices
 
 
 @dataclass(frozen=True)
@@ -452,7 +453,7 @@ class MSGNetAdapter(DynamicGraphForecastAdapter):
                         "period": int(periods[scale_index]),
                         "fft_strength": float(weights[0, scale_index]),
                         "scale_contribution": float(contributions[0, scale_index]),
-                        **{key: value.detach().cpu() for key, value in stages.items()},
+                        **{key: value.detach().transpose(0, 1).contiguous().cpu() for key, value in stages.items()},
                     })
                 layer_input = self.model.layer_norm(scale_block(layer_input))
         return {"contexts": contexts}
@@ -470,17 +471,17 @@ class MSGNetAdapter(DynamicGraphForecastAdapter):
             modified = adaptive.clone()
             kind = graph_override["type"]
             if kind == "structural_edge_removal":
-                modified[int(graph_override["source"]), int(graph_override["target"])] = 0
+                row, column = native_edge_indices(graph_override["source"], graph_override["target"])
+                modified[row, column] = 0
             elif kind != "identity":
                 raise ValueError(f"Unsupported MSGNet intervention: {kind}")
             originals[scale_index] = block.gconv1.forward
-            before[scale_index] = adaptive.cpu()
-            after[scale_index] = modified.cpu()
-
-            def overridden(_self, x, adj, fixed=modified):
-                return originals_local(_self, x, fixed)
+            before[scale_index] = adaptive.transpose(0, 1).contiguous().cpu()
+            after[scale_index] = modified.transpose(0, 1).contiguous().cpu()
 
             originals_local = block.gconv1.forward.__func__
+            def overridden(_self, x, adj, fixed=modified, original=originals_local):
+                return original(_self, x, fixed)
             block.gconv1.forward = types.MethodType(overridden, block.gconv1)
         try:
             prediction = self.predict(batch)

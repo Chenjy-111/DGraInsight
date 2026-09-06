@@ -1,6 +1,6 @@
 {
   "fixture_version": 2,
-  "rule": "Current browser graph tensors and MTGNN graph core must remain exact.",
+  "rule": "MSGNet graph axes corrected to source,target; baseline forecast hashes are unchanged. Other model graph cores remain exact.",
   "dgraformer": [
     {
       "dataset": "ETTh1",
@@ -2232,23 +2232,23 @@
         {
           "context_id": 0,
           "layer": 0,
-          "adaptive_sha256": "09ed1007a1c7f7deac6a4d8cc731e120bd4b6d074d03522f8f9483e433133bdb",
-          "effective_sha256": "e49841cab09db104db56a8593c78cc80dc786542a63d7da96a8de18aae9b4707",
-          "edge_identities_sha256": "a05c7c92287b2cd14ea514c4b703c416111fb09ce0d990674e577ecb815c3896"
+          "adaptive_sha256": "07a8b9f8ee17f3f72ac6ca0936bdf9aba2e1353a877e07162ca9863f392f61fe",
+          "effective_sha256": "a5fb9c4bea4fca12e02f8b49d9571ad2c34fa582c957455e534ecccd114a2cb4",
+          "edge_identities_sha256": "6919ddca338b7e89ab701574694919ada296d0396483ca30240f83db36d07b5e"
         },
         {
           "context_id": 1,
           "layer": 0,
-          "adaptive_sha256": "d63d1c28b36e02930e239fd5b5cc57041b0428b413a3415475028e61e3be1c9e",
-          "effective_sha256": "8a5956a2687f0009ca2e3984627100258285dac61f90e1635030d230bc81cdaf",
-          "edge_identities_sha256": "8b5570f56147ba99c74037a43bf624c825fa5262898227332a1cde76f16a5ce6"
+          "adaptive_sha256": "0793c7996b1fdf6461c261ca33e29608c0f3e396d49b93b890375d5a6f6f66d8",
+          "effective_sha256": "61b9f9c21396d38eccb1a61a24dd50602cfb7a8405e72dab379e21a85cd309a2",
+          "edge_identities_sha256": "a22b0cde32dc10014ac278cf4c2bea9dd822771dd742ecf98c8d5d0585e9dbca"
         },
         {
           "context_id": 2,
           "layer": 0,
-          "adaptive_sha256": "ec248f15b84215f09e8ada5ca54dc3975812a58e9f72582420fcbd577d6de7d2",
-          "effective_sha256": "2cf652b61a395e3619fba2c1e1cf51b57b793133243b5bc423c594bc11ce88fc",
-          "edge_identities_sha256": "4015cbbc267db8af76911e08021e120ee8eaf06f32d2262d17ecb48980f79d29"
+          "adaptive_sha256": "343ddc8e782d9faeec5053b48c0379e4dc3baa818093ce307c46f6f7020bfc24",
+          "effective_sha256": "5fc7e77f16674c82b15affe9ca7b5df486bf8e9e94db8795433b61dbfefa68f8",
+          "edge_identities_sha256": "337db517753a1932b453263c45b1c28731baf5b3b11654eb3b1581622fa8fcfe"
         }
       ]
     },
@@ -2260,23 +2260,23 @@
         {
           "context_id": 0,
           "layer": 0,
-          "adaptive_sha256": "09ed1007a1c7f7deac6a4d8cc731e120bd4b6d074d03522f8f9483e433133bdb",
-          "effective_sha256": "e49841cab09db104db56a8593c78cc80dc786542a63d7da96a8de18aae9b4707",
-          "edge_identities_sha256": "a05c7c92287b2cd14ea514c4b703c416111fb09ce0d990674e577ecb815c3896"
+          "adaptive_sha256": "07a8b9f8ee17f3f72ac6ca0936bdf9aba2e1353a877e07162ca9863f392f61fe",
+          "effective_sha256": "a5fb9c4bea4fca12e02f8b49d9571ad2c34fa582c957455e534ecccd114a2cb4",
+          "edge_identities_sha256": "6919ddca338b7e89ab701574694919ada296d0396483ca30240f83db36d07b5e"
         },
         {
           "context_id": 1,
           "layer": 0,
-          "adaptive_sha256": "d63d1c28b36e02930e239fd5b5cc57041b0428b413a3415475028e61e3be1c9e",
-          "effective_sha256": "8a5956a2687f0009ca2e3984627100258285dac61f90e1635030d230bc81cdaf",
-          "edge_identities_sha256": "8b5570f56147ba99c74037a43bf624c825fa5262898227332a1cde76f16a5ce6"
+          "adaptive_sha256": "0793c7996b1fdf6461c261ca33e29608c0f3e396d49b93b890375d5a6f6f66d8",
+          "effective_sha256": "61b9f9c21396d38eccb1a61a24dd50602cfb7a8405e72dab379e21a85cd309a2",
+          "edge_identities_sha256": "a22b0cde32dc10014ac278cf4c2bea9dd822771dd742ecf98c8d5d0585e9dbca"
         },
         {
           "context_id": 2,
           "layer": 0,
-          "adaptive_sha256": "ec248f15b84215f09e8ada5ca54dc3975812a58e9f72582420fcbd577d6de7d2",
-          "effective_sha256": "2cf652b61a395e3619fba2c1e1cf51b57b793133243b5bc423c594bc11ce88fc",
-          "edge_identities_sha256": "4015cbbc267db8af76911e08021e120ee8eaf06f32d2262d17ecb48980f79d29"
+          "adaptive_sha256": "343ddc8e782d9faeec5053b48c0379e4dc3baa818093ce307c46f6f7020bfc24",
+          "effective_sha256": "5fc7e77f16674c82b15affe9ca7b5df486bf8e9e94db8795433b61dbfefa68f8",
+          "edge_identities_sha256": "337db517753a1932b453263c45b1c28731baf5b3b11654eb3b1581622fa8fcfe"
         }
       ]
     },
@@ -2288,23 +2288,23 @@
         {
           "context_id": 0,
           "layer": 0,
-          "adaptive_sha256": "09ed1007a1c7f7deac6a4d8cc731e120bd4b6d074d03522f8f9483e433133bdb",
-          "effective_sha256": "e49841cab09db104db56a8593c78cc80dc786542a63d7da96a8de18aae9b4707",
-          "edge_identities_sha256": "a05c7c92287b2cd14ea514c4b703c416111fb09ce0d990674e577ecb815c3896"
+          "adaptive_sha256": "07a8b9f8ee17f3f72ac6ca0936bdf9aba2e1353a877e07162ca9863f392f61fe",
+          "effective_sha256": "a5fb9c4bea4fca12e02f8b49d9571ad2c34fa582c957455e534ecccd114a2cb4",
+          "edge_identities_sha256": "6919ddca338b7e89ab701574694919ada296d0396483ca30240f83db36d07b5e"
         },
         {
           "context_id": 1,
           "layer": 0,
-          "adaptive_sha256": "d63d1c28b36e02930e239fd5b5cc57041b0428b413a3415475028e61e3be1c9e",
-          "effective_sha256": "8a5956a2687f0009ca2e3984627100258285dac61f90e1635030d230bc81cdaf",
-          "edge_identities_sha256": "8b5570f56147ba99c74037a43bf624c825fa5262898227332a1cde76f16a5ce6"
+          "adaptive_sha256": "0793c7996b1fdf6461c261ca33e29608c0f3e396d49b93b890375d5a6f6f66d8",
+          "effective_sha256": "61b9f9c21396d38eccb1a61a24dd50602cfb7a8405e72dab379e21a85cd309a2",
+          "edge_identities_sha256": "a22b0cde32dc10014ac278cf4c2bea9dd822771dd742ecf98c8d5d0585e9dbca"
         },
         {
           "context_id": 2,
           "layer": 0,
-          "adaptive_sha256": "ec248f15b84215f09e8ada5ca54dc3975812a58e9f72582420fcbd577d6de7d2",
-          "effective_sha256": "2cf652b61a395e3619fba2c1e1cf51b57b793133243b5bc423c594bc11ce88fc",
-          "edge_identities_sha256": "4015cbbc267db8af76911e08021e120ee8eaf06f32d2262d17ecb48980f79d29"
+          "adaptive_sha256": "343ddc8e782d9faeec5053b48c0379e4dc3baa818093ce307c46f6f7020bfc24",
+          "effective_sha256": "5fc7e77f16674c82b15affe9ca7b5df486bf8e9e94db8795433b61dbfefa68f8",
+          "edge_identities_sha256": "337db517753a1932b453263c45b1c28731baf5b3b11654eb3b1581622fa8fcfe"
         }
       ]
     },
@@ -2316,23 +2316,23 @@
         {
           "context_id": 0,
           "layer": 0,
-          "adaptive_sha256": "09ed1007a1c7f7deac6a4d8cc731e120bd4b6d074d03522f8f9483e433133bdb",
-          "effective_sha256": "e49841cab09db104db56a8593c78cc80dc786542a63d7da96a8de18aae9b4707",
-          "edge_identities_sha256": "a05c7c92287b2cd14ea514c4b703c416111fb09ce0d990674e577ecb815c3896"
+          "adaptive_sha256": "07a8b9f8ee17f3f72ac6ca0936bdf9aba2e1353a877e07162ca9863f392f61fe",
+          "effective_sha256": "a5fb9c4bea4fca12e02f8b49d9571ad2c34fa582c957455e534ecccd114a2cb4",
+          "edge_identities_sha256": "6919ddca338b7e89ab701574694919ada296d0396483ca30240f83db36d07b5e"
         },
         {
           "context_id": 1,
           "layer": 0,
-          "adaptive_sha256": "d63d1c28b36e02930e239fd5b5cc57041b0428b413a3415475028e61e3be1c9e",
-          "effective_sha256": "8a5956a2687f0009ca2e3984627100258285dac61f90e1635030d230bc81cdaf",
-          "edge_identities_sha256": "8b5570f56147ba99c74037a43bf624c825fa5262898227332a1cde76f16a5ce6"
+          "adaptive_sha256": "0793c7996b1fdf6461c261ca33e29608c0f3e396d49b93b890375d5a6f6f66d8",
+          "effective_sha256": "61b9f9c21396d38eccb1a61a24dd50602cfb7a8405e72dab379e21a85cd309a2",
+          "edge_identities_sha256": "a22b0cde32dc10014ac278cf4c2bea9dd822771dd742ecf98c8d5d0585e9dbca"
         },
         {
           "context_id": 2,
           "layer": 0,
-          "adaptive_sha256": "ec248f15b84215f09e8ada5ca54dc3975812a58e9f72582420fcbd577d6de7d2",
-          "effective_sha256": "2cf652b61a395e3619fba2c1e1cf51b57b793133243b5bc423c594bc11ce88fc",
-          "edge_identities_sha256": "4015cbbc267db8af76911e08021e120ee8eaf06f32d2262d17ecb48980f79d29"
+          "adaptive_sha256": "343ddc8e782d9faeec5053b48c0379e4dc3baa818093ce307c46f6f7020bfc24",
+          "effective_sha256": "5fc7e77f16674c82b15affe9ca7b5df486bf8e9e94db8795433b61dbfefa68f8",
+          "edge_identities_sha256": "337db517753a1932b453263c45b1c28731baf5b3b11654eb3b1581622fa8fcfe"
         }
       ]
     },
@@ -2344,23 +2344,23 @@
         {
           "context_id": 0,
           "layer": 0,
-          "adaptive_sha256": "09ed1007a1c7f7deac6a4d8cc731e120bd4b6d074d03522f8f9483e433133bdb",
-          "effective_sha256": "e49841cab09db104db56a8593c78cc80dc786542a63d7da96a8de18aae9b4707",
-          "edge_identities_sha256": "a05c7c92287b2cd14ea514c4b703c416111fb09ce0d990674e577ecb815c3896"
+          "adaptive_sha256": "07a8b9f8ee17f3f72ac6ca0936bdf9aba2e1353a877e07162ca9863f392f61fe",
+          "effective_sha256": "a5fb9c4bea4fca12e02f8b49d9571ad2c34fa582c957455e534ecccd114a2cb4",
+          "edge_identities_sha256": "6919ddca338b7e89ab701574694919ada296d0396483ca30240f83db36d07b5e"
         },
         {
           "context_id": 1,
           "layer": 0,
-          "adaptive_sha256": "d63d1c28b36e02930e239fd5b5cc57041b0428b413a3415475028e61e3be1c9e",
-          "effective_sha256": "8a5956a2687f0009ca2e3984627100258285dac61f90e1635030d230bc81cdaf",
-          "edge_identities_sha256": "8b5570f56147ba99c74037a43bf624c825fa5262898227332a1cde76f16a5ce6"
+          "adaptive_sha256": "0793c7996b1fdf6461c261ca33e29608c0f3e396d49b93b890375d5a6f6f66d8",
+          "effective_sha256": "61b9f9c21396d38eccb1a61a24dd50602cfb7a8405e72dab379e21a85cd309a2",
+          "edge_identities_sha256": "a22b0cde32dc10014ac278cf4c2bea9dd822771dd742ecf98c8d5d0585e9dbca"
         },
         {
           "context_id": 2,
           "layer": 0,
-          "adaptive_sha256": "ec248f15b84215f09e8ada5ca54dc3975812a58e9f72582420fcbd577d6de7d2",
-          "effective_sha256": "2cf652b61a395e3619fba2c1e1cf51b57b793133243b5bc423c594bc11ce88fc",
-          "edge_identities_sha256": "4015cbbc267db8af76911e08021e120ee8eaf06f32d2262d17ecb48980f79d29"
+          "adaptive_sha256": "343ddc8e782d9faeec5053b48c0379e4dc3baa818093ce307c46f6f7020bfc24",
+          "effective_sha256": "5fc7e77f16674c82b15affe9ca7b5df486bf8e9e94db8795433b61dbfefa68f8",
+          "edge_identities_sha256": "337db517753a1932b453263c45b1c28731baf5b3b11654eb3b1581622fa8fcfe"
         }
       ]
     }

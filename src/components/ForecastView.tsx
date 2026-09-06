@@ -12,7 +12,7 @@ export function ForecastView() {
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <h3 className="whitespace-nowrap text-[15px] font-semibold">
             Forecast · {sample.variables[s.target]} <span className="text-ink-400">({sample.dataset})</span>
@@ -46,9 +46,7 @@ export function ForecastView() {
         <Legend swatch="bg-pred" label="Prediction" dashed />
         <Legend swatch="bg-errfill" label="Absolute residual band" />
       </div>
-      <p className="mt-3 text-[12.5px] leading-relaxed text-ink-400">
-        Curves and metrics are deterministic descriptions of stored checkpoint outputs. Selecting a look-back band changes only the displayed graph context; the interface does not attribute forecast errors to that window.
-      </p>
+
     </div>
   );
 }

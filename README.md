@@ -1,6 +1,6 @@
 # DGraInsight
 
-DGraInsight is an offline evidence-audit system for learned graph relations in multivariate forecasting models. The current repository is v2-only: Config v2 drives Quick Inspection or a frozen Formal Evidence Audit, both produce Portable Audit Session v2, and the browser validates and renders Session v2 without rerunning a model or recomputing statistics.
+DGraInsight displays offline edge-removal forecast performance for learned graph relations in multivariate forecasting models. The built-in page uses the independent `performance.v1` namespace and a single Summary: select an effective edge, compare MAE/MSE across deletion scopes, and inspect signed error changes. See [performance data, reproduction and acceptance](docs/PERFORMANCE_V1.md). The earlier Session v2 audit tooling remains available for historical traceability; its results are not used by the new performance Summary.
 
 ## Current evidence protocol
 
@@ -76,7 +76,7 @@ For the short user workflow—validate, choose an edge, generate JSON, and impor
 npm run dev
 ```
 
-The built-in demo loads the two validated Session v2 assets under `public/data/evidence/`. The import panel accepts Session v2 only; retired session formats fail closed with an explicit regeneration message.
+The built-in demo loads the two independent performance assets under `public/data/performance/v1/`, with one cached request per model. The legacy import panel can inspect Session v2 graph provenance; its performance result area explicitly reports unavailable rather than falling back to old audit results.
 
 ## Repository map
 
@@ -102,3 +102,5 @@ See the [detailed audit guide](dgraudit/README.md), [Session v2 contract](docs/A
 Raw third-party datasets, local checkpoints, upstream model source trees, secrets, and local environments are not included. Obtain model/data assets from their official sources and verify their hashes before a live audit.
 
 This repository does not yet contain an owner-approved `LICENSE` or verified `CITATION.cff`; those remain publication-governance blockers and do not affect the local technical regression gates.
+
+MSGNet graph direction and node naming were corrected on 2026-09-06. Its archived predictions have a recorded CPU/CUDA reproduction discrepancy; see [the scientific verification report](docs/SCIENTIFIC_SEMANTICS_REPAIR.md) before interpreting small performance changes.

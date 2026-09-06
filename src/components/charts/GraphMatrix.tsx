@@ -6,12 +6,16 @@ export function GraphMatrix({
   diverging,
   target,
   size = 300,
+  selectedEdge,
+  onSelectEdge,
 }: {
   variables: string[];
   matrix: number[][];
   diverging?: boolean;
   target?: number;
   size?: number;
+  selectedEdge?: {source:number; target:number} | null;
+  onSelectEdge?: (source:number,target:number)=>void;
 }) {
   const N = variables.length;
   const cellSize = Math.max(16, Math.min(40, Math.floor((size - 60) / N)));
@@ -81,6 +85,9 @@ export function GraphMatrix({
                   key={j}
                   role="gridcell"
                   aria-label={label}
+                  tabIndex={onSelectEdge && i !== j && val > 0 ? 0 : undefined}
+                  onClick={() => {if(i !== j && val > 0) onSelectEdge?.(i,j);}}
+                  onKeyDown={e => {if((e.key === 'Enter' || e.key === ' ') && i !== j && val > 0) {e.preventDefault();onSelectEdge?.(i,j);}}}
                   className={`graph-matrix-cell flex items-center justify-center ${
                     isTargetRow ? 'graph-matrix-target-row' : ''
                   } ${isTargetColumn ? 'graph-matrix-target-column' : ''} ${
@@ -89,6 +96,8 @@ export function GraphMatrix({
                   style={{
                     width: cellSize, height: cellSize, backgroundColor: color(val),
                     animationDelay: `${targetDistance * 28}ms`,
+                    outline: selectedEdge?.source === i && selectedEdge.target === j ? '2px solid #16827f' : undefined,
+                    outlineOffset: '-2px',
                   }}
                   onMouseEnter={(e) => show(e, label)}
                   onMouseMove={move}

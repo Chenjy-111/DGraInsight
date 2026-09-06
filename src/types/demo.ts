@@ -16,10 +16,9 @@ export type Horizon = 96 | 192 | 336 | 720;
 
 export type ViewMode =
   | 'forecast'
-  | 'graph'
-  | 'attention';
+  | 'graph';
 
-export type GraphLayout = 'matrix' | 'sidebyside' | '3d-timeline';
+export type GraphLayout = 'matrix' | '3d-timeline';
 export type GraphSource = 'static' | 'dynamic' | 'sparse' | 'difference';
 export type ScaleId = 1 | 2 | 3;
 export type ExplanationDepth = 'brief' | 'standard' | 'technical';

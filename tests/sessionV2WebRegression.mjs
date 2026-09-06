@@ -4,12 +4,38 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseCurrentAuditSession, SESSION_V1_UNSUPPORTED, validateAuditSessionV2 } from '../.tmp/audit-session-v2-validator/src/data/auditSessionV2.js';
 import { formalAvailabilityLabel } from '../.tmp/audit-session-v2-validator/src/components/evidence/evidencePresentationLogic.js';
+import { combinedPerformance, changeThreshold, errorDelta, performanceDirection, performancePolicy, summarizePerformance } from '../.tmp/audit-session-v2-validator/src/components/evidence/forecastPerformanceLogic.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = relative => JSON.parse(fs.readFileSync(path.join(ROOT, relative), 'utf8'));
 const source = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const dgra = read('public/data/evidence/dgraformer_etth1_session_v2.json');
 const msgnet = read('public/data/evidence/msgnet_etth1_session_v2.json');
+
+const accuracyCase = (metrics, status = 'active') => ({ status, response_metrics: metrics });
+assert.equal(performanceDirection(-0.001), 'Improved');
+assert.equal(performanceDirection(0.001), 'Degraded');
+assert.equal(performanceDirection(0), 'Unchanged');
+assert.equal(performanceDirection(null), 'Unavailable');
+assert.equal(errorDelta(accuracyCase({ baseline_mae: 2, intervention_mae: 1 }), 'mae'), -1);
+assert.equal(errorDelta(accuracyCase({ error_delta_mae: 0 }, 'inactive'), 'mae'), null);
+assert.equal(errorDelta(accuracyCase({ error_delta_mae: '0' }), 'mae'), null);
+assert.equal(errorDelta(accuracyCase({ error_delta_mae: NaN }), 'mae'), null);
+const conflicting = accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: -1, error_delta_mse: 1 });
+assert.equal(performanceDirection(errorDelta(conflicting, 'mae')), 'Improved');
+assert.equal(performanceDirection(errorDelta(conflicting, 'mse')), 'Degraded');
+const accuracySummary = summarizePerformance([
+  accuracyCase({ baseline_mae: 2, error_delta_mae: -1 }),
+  accuracyCase({ baseline_mae: 2, error_delta_mae: 0.5 }),
+  accuracyCase({ baseline_mae: 1, error_delta_mae: 0 }),
+  accuracyCase({ error_delta_mae: 0 }, 'inactive'), null,
+], 'mae');
+assert.deepEqual(accuracySummary, { total: 5, available: 3, inactive: 1, missing: 1, improved: 1, degraded: 1, unchanged: 1, unclassified: 0, threshold: (5 / 3) * .001, direction: 'Improved', meanDelta: -0.5 / 3, reductionPercent: 10 });
+assert.equal(summarizePerformance([accuracyCase({ baseline_mae: 0, error_delta_mae: 1 })], 'mae').reductionPercent, null);
+assert.equal(summarizePerformance([null], 'mae').meanDelta, null);
+assert.equal(summarizePerformance([accuracyCase({ error_delta_mae: -1 })], 'mae').reductionPercent, null);
+assert.ok(summarizePerformance(dgra.case_evidence, 'mae').improved > 0);
+assert.ok(summarizePerformance(dgra.case_evidence, 'mae').degraded > 0);
 
 const formalBundle = (status, supported) => ({ evidence: { primary_inference: { status }, multiplicity: { supported } } });
 const completeSupported = formalBundle('complete', true);
@@ -168,36 +194,89 @@ cross.primary_inference = savedInference;
 cross.multiplicity = savedMultiplicity;
 
 const ui = source('src/components/SessionV2Evidence.tsx');
-const evidenceUi = source('src/components/evidence/EvidencePresentation.tsx');
+const evidenceUi = source('src/components/evidence/PerformanceSummary.tsx');
 const completeUi = `${ui}\n${evidenceUi}`;
-assert.match(ui, /Evidence Summary/);
-assert.match(ui, /Single-window Detail/);
-assert.match(ui, /All-window Detail/);
-assert.match(ui, /Single-scale Detail/);
-assert.match(ui, /All-scale Detail/);
-assert.match(completeUi, /Scope Evidence Map/);
-assert.match(completeUi, /Selected Scope Comparison/);
-assert.match(completeUi, /All Test Results/);
-assert.match(completeUi, /Selected Test Detail/);
-assert.doesNotMatch(completeUi, /Descriptive same-test trajectory|Illustrative Case/);
-assert.match(completeUi, /font-sans tabular-nums text-ink-700/);
-assert.match(completeUi, /Frozen inference settings and sensitivity results, shown separately for each displayed scope/);
-assert.doesNotMatch(completeUi, /const primary = local \?\? global/);
-assert.match(completeUi, /Shared audit provenance/);
-assert.match(completeUi, /Hypothesis families/);
-assert.match(completeUi, /Exact candidate not audited/);
-assert.match(completeUi, /local=\{local\} global=\{all\}/);
-assert.match(completeUi, /local=\{single\} global=\{all\}/);
-assert.doesNotMatch(completeUi, /<ProvenancePanel[^>]*bundle=\{/);
-assert.match(completeUi, /Frozen candidate-level evidence status across displayed scopes/);
-assert.match(completeUi, /planned_samples\.map\(testId => \(\{ testId, record: exactCase/);
-assert.match(completeUi, /No zero value or alternate case was substituted/);
-assert.doesNotMatch(completeUi, /const\s+supported\s*=\s*q\s*</);
-assert.doesNotMatch(completeUi, /multiplicity\.supported\s*\|\|/);
-assert.doesNotMatch(completeUi, /computeBH|calculatePValue|deriveSupported|aggregateCasesToFormalEvidence|inferRelationPattern/);
-assert.doesNotMatch(completeUi, /Localized evidence|Distributed evidence|Stable dependency|Global importance|Robust evidence/);
+assert.match(evidenceUi, /Summary/);
+assert.match(evidenceUi, /Removal scope comparison/);
+assert.match(evidenceUi, /type:\s*'line'/);
+assert.match(evidenceUi, /<details/);
+assert.doesNotMatch(completeUi, /EvidenceDetail|loadBuiltInSessionV2|ScopeEvidenceMap|MethodSensitivity|Supported|Not supported|Single-window Detail|All-window Detail/);
+assert.doesNotMatch(completeUi, /computeBH|calculatePValue|deriveSupported|aggregateCasesToFormalEvidence/);
 const production = ['src/App.tsx','src/components/SessionV2Evidence.tsx','src/components/evidence/EvidencePresentation.tsx','src/components/MsgnetWorkspace.tsx','src/components/ImportedSessionV2Workspace.tsx','src/data/auditSessionV2View.ts'];
 const legacy = /empirical_p|bh_adjusted_p|local_bh_supported_count|broader_context_bh_supported_count|global_bh_supported_count|bootstrap_repetitions|statistically significant|case significance/;
 for (const file of production) assert.doesNotMatch(source(file), legacy, `${file} contains legacy production evidence usage`);
 
 console.log('Session v2 web regression: PASS');
+
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: -1, error_delta_mse: -2 })]), 'Improved');
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: 1, error_delta_mse: 2 })]), 'Degraded');
+assert.equal(combinedPerformance([conflicting]), 'Mixed');
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: 1, error_delta_mse: -2 })]), 'Mixed');
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: 0, error_delta_mse: -2 })]), 'Partial improvement');
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: -1 })]), 'Unavailable');
+assert.equal(combinedPerformance([null]), 'Unavailable');
+assert.equal(combinedPerformance([accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: -1, error_delta_mse: -2 }, 'inactive')]), 'Unavailable');
+for (const [id, expected] of [['dgra:window:6:0->4', 'Partial degradation'], ['dgra:all:0->2', 'Unchanged']]) {
+  assert.equal(combinedPerformance(dgra.case_evidence.filter(record => record.candidate_id === id)), expected);
+}
+console.log('Combined forecast accuracy classification: PASS');
+
+// Fail closed for ambiguous historical MSGNet graphs and variable-labelled latent nodes.
+const legacyMsgnet = structuredClone(msgnet);
+delete legacyMsgnet.model.graph_semantics;
+assert.equal(validateAuditSessionV2(legacyMsgnet).ok, false);
+const mislabeledMsgnet = structuredClone(msgnet);
+mislabeledMsgnet.candidate_relations[0].source_name = 'HUFL';
+assert.equal(validateAuditSessionV2(mislabeledMsgnet).ok, false);
+const wrongAxesMsgnet = structuredClone(msgnet);
+wrongAxesMsgnet.samples[0].contexts[0].graphs.adaptive.axis_order = ['target_node', 'source_node'];
+assert.equal(validateAuditSessionV2(wrongAxesMsgnet).ok, false);
+for (const candidate of msgnet.candidate_relations) {
+  const [row, col] = candidate.candidate_id.split(':').at(-1).split('->').map(Number);
+  assert.equal(candidate.source, col);
+  assert.equal(candidate.target, row);
+  assert.equal(candidate.source_name, `G${col}`);
+  assert.equal(candidate.target_name, `G${row}`);
+}
+console.log('MSGNet scientific coordinate validation: PASS');
+
+// User-confirmed 0.1% descriptive deadband: unit fixtures, not measured evidence.
+const threshold = changeThreshold(2);
+assert.equal(threshold, 0.002);
+for (const delta of [-threshold, 0, threshold]) assert.equal(performanceDirection(delta, threshold), 'Unchanged');
+assert.equal(performanceDirection(-threshold * 1.001, threshold), 'Improved');
+assert.equal(performanceDirection(threshold * 1.001, threshold), 'Degraded');
+assert.equal(performanceDirection(NaN, threshold), 'Unavailable');
+assert.equal(changeThreshold(undefined), null);
+assert.equal(changeThreshold(-1), null);
+const tiny = accuracyCase({ baseline_mae: 2, baseline_mse: 2, error_delta_mae: -0.001, error_delta_mse: 0.001 });
+assert.equal(combinedPerformance([tiny]), 'Unchanged');
+const missingBaseline = accuracyCase({ error_delta_mae: -1, error_delta_mse: -2 });
+assert.equal(combinedPerformance([missingBaseline]), 'Unavailable');
+const unchangedCopy = structuredClone(tiny);
+const tinySummary = summarizePerformance([tiny], 'mae');
+assert.equal(tinySummary.meanDelta, -0.001);
+assert.equal(tinySummary.reductionPercent, 0.05);
+assert.equal(tinySummary.unchanged, 1);
+assert.deepEqual(tiny, unchangedCopy, 'classification must never zero or mutate raw metrics');
+const cancellation = summarizePerformance([
+  accuracyCase({ baseline_mae: 2, error_delta_mae: -0.004 }),
+  accuracyCase({ baseline_mae: 2, error_delta_mae: 0.003 }),
+], 'mae');
+assert.equal(cancellation.direction, 'Unchanged');
+assert.equal(cancellation.improved, 1);
+assert.equal(cancellation.degraded, 1);
+const msgPolicy = performancePolicy(msgnet);
+assert.equal(msgPolicy.absolute, 0.00002);
+assert.equal(performancePolicy(dgra).absolute, 0);
+const differentCheckpoint = structuredClone(msgnet);
+differentCheckpoint.checkpoint.sha256 = 'different';
+assert.equal(performancePolicy(differentCheckpoint).absolute, 0);
+assert.equal(performanceDirection(-0.00001, changeThreshold(0.001, msgPolicy)), 'Unchanged');
+// Every observed sign reversal is inside the empirical display floor.
+const replay = read('docs/scientific_validation/msgnet_replay.json');
+for (const item of replay.direction_change_cases) {
+  assert.equal(performanceDirection(item.archived_delta, msgPolicy.absolute), 'Unchanged');
+  assert.equal(performanceDirection(item.replay_delta, msgPolicy.absolute), 'Unchanged');
+}
+console.log('0.1% display threshold, empirical MSGNet floor and raw-value preservation: PASS');

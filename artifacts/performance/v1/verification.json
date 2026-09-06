@@ -1,0 +1,16 @@
+{
+  "dgraformer": {
+    "status": "PASS",
+    "baselines": 44,
+    "deletions": 3073,
+    "error_values": 598464,
+    "exact_equality": true
+  },
+  "msgnet": {
+    "status": "PASS",
+    "baselines": 18,
+    "deletions": 3024,
+    "error_values": 584064,
+    "exact_equality": true
+  }
+}

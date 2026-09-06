@@ -1,16 +1,14 @@
 import { useEffect } from 'react';
-import { ChevronLeft, ChevronRight, GitBranch, LockKeyhole, Waves } from 'lucide-react';
+import { GitBranch, LockKeyhole, Waves } from 'lucide-react';
 import { Hero } from './components/Hero';
 import { ResearchMotivation } from './components/ResearchMotivation';
 import { MethodExplainer } from './components/MethodExplainer';
 import { SystemOverview } from './components/SystemOverview';
 import { SystemArchitecture } from './components/SystemArchitecture';
-import { CaseStudy } from './components/CaseStudy';
 import { Limitations } from './components/Limitations';
 import { CitationSection } from './components/CitationSection';
 import { VisualizationCanvas } from './components/VisualizationCanvas';
 import { ControlStudio } from './components/ControlStudio';
-import { ExplanationInspector } from './components/ExplanationInspector';
 import { MsgnetDataWorkspace } from './components/MsgnetWorkspace';
 import { WorkflowBar } from './components/WorkflowChrome';
 import { AuditSessionImport } from './components/AuditSessionImport';
@@ -26,7 +24,6 @@ export default function App() {
   const pending = useWorkflowStore(state => state.pendingIntervention);
   const load = useDemoStore(state => state.loadCurrent);
   const immersive = useDemoStore(state => state.view === 'graph' && state.graphLayout === '3d-timeline');
-  const collapsed = useDemoStore(state => state.inspectorCollapsed);
   const setDemo = useDemoStore(state => state.set);
   const source = useAuditSessionStore(state => state.source);
   const sessionV2 = useAuditSessionStore(state => state.sessionV2);
@@ -43,28 +40,29 @@ export default function App() {
     <SystemOverview/>
     <WorkflowBar/>
     <section id="discovery-workspace" className="border-b border-line bg-white">
-      <WorkspaceHeader number="01" title="Pattern Discovery" text={imported ? 'Inspect the stored graph and audited relation.' : 'Find a relation worth testing.'}/>
-      {imported ? <ImportedModelLock model={sessionV2!.model.name as string} context={sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={setModel}/>}
+      <WorkspaceHeader number="01" title="Pattern Discovery" text={imported ? 'Inspect the stored graph, forecast accuracy changes and available response evidence.' : 'Select an edge to compare forecast errors before and after removal.'}/>
+      {imported ? <ImportedModelLock model={sessionV2!.model.name as string} context={sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
+        if (next === model) return;
+        if (next === 'DGraFormer') { setDemo('view', 'graph'); setDemo('graphLayout', '3d-timeline'); }
+        setModel(next);
+      }}/>}
       {importedV2
         ? <ImportedSessionV2Workspace key={String((sessionV2.session as any).session_id)} session={sessionV2}/>
         : model === 'DGraFormer'
           ? <>
-              <div className={immersive ? 'relative min-h-[920px] w-full overflow-hidden' : 'relative mx-auto grid max-w-[1400px] gap-6 px-5 py-10 lg:grid-cols-[280px_1fr_320px]'}>
+              <div className={immersive ? 'relative min-h-[920px] w-full overflow-hidden' : 'relative grid min-h-[920px] w-full gap-6 px-5 py-10 lg:grid-cols-[280px_minmax(0,1fr)]'}>
                 <div className={immersive ? 'absolute left-5 top-20 z-30 max-h-[760px] w-[280px] overflow-y-auto rounded-xl bg-white/90 p-4 shadow-xl' : ''}><ControlStudio/></div>
                 <VisualizationCanvas/>
-                {collapsed
-                  ? <button onClick={() => setDemo('inspectorCollapsed', false)} className="absolute right-0 top-1/2"><ChevronLeft/></button>
-                  : <div className={immersive ? 'absolute right-5 top-20 z-30 w-[320px] rounded-xl bg-white/90 p-4 shadow-xl' : 'relative'}><button onClick={() => setDemo('inspectorCollapsed', true)} className="absolute -left-7 top-1/2"><ChevronRight/></button><ExplanationInspector/></div>}
+
               </div>
               <DgraSessionV2Evidence/>
             </>
           : <><MsgnetDataWorkspace/><MsgnetSessionV2Evidence/></>}
     </section>
     <SystemArchitecture/>
-    <CaseStudy/>
     <Limitations/>
     <CitationSection/>
-    <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Evidence validation for learned graph structures</footer>
+    <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Forecast accuracy and response stability through edge removal</footer>
   </div>;
 }
 

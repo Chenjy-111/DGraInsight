@@ -56,7 +56,7 @@ export function captureWebGraphBaseline() {
   };
   return {
     fixture_version: 2,
-    rule: 'Current browser graph tensors and MTGNN graph core must remain exact.',
+    rule: 'MSGNet graph axes corrected to source,target; baseline forecast hashes are unchanged. Other model graph cores remain exact.',
     dgraformer,
     msgnet,
     mtgnn_graph_core_sha256: sha256(mtgnnGraphCore),

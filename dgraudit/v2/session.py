@@ -9,6 +9,7 @@ from typing import Any, Mapping, Sequence
 
 from .config import statistical_protocol_checks
 from .pipeline import aggregate_candidate_evidence, protocol_provenance
+from ..msgnet_semantics import semantics_errors
 
 
 SESSION_SCHEMA_VERSION_V2 = "2.0"
@@ -78,7 +79,9 @@ def build_audit_session_v2(
         "hypothesis_families": families,
         "cross_sample_evidence": cross,
         "dependence_audit": dependence_records,
-        "validation": {"model_validation_V01_V09": model_validation, "statistical_validation": checks},
+        "validation": {"model_validation_V01_V09": model_validation, "statistical_validation": checks,
+            **({"independent_replay": copy.deepcopy(graph_core["model_specific"]["independent_replay"])}
+               if "independent_replay" in graph_core.get("model_specific", {}) else {})},
         "provenance": {
             **copy.deepcopy(graph_core.get("provenance", {})),
             **protocol_provenance(config, families, dependence_records),
@@ -107,6 +110,7 @@ def validate_audit_session_v2(session: Any) -> list[str]:
     missing = sorted(required - set(session))
     if missing:
         return [f"Missing top-level fields: {missing}"]
+    errors.extend(semantics_errors(session))
     if session.get("schema_version") != SESSION_SCHEMA_VERSION_V2:
         errors.append("schema_version must be 2.0")
     if session.get("session", {}).get("status") not in FORMAL_STATUSES:

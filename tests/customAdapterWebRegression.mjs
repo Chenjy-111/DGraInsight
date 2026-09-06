@@ -11,8 +11,11 @@ const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'dgrainsight-custom-web-
 try {
   const run = (config, fileName) => {
     const output = path.join(temporary, fileName);
-    const execution = spawnSync('python', [
-      '-m', 'dgraudit', 'audit', '--config', config, '--output', output,
+    const entry = process.env.DGRAINSIGHT_PYTHON_PATHS
+      ? ['-c', `import sys,runpy; sys.path[:0]=${JSON.stringify(JSON.parse(process.env.DGRAINSIGHT_PYTHON_PATHS))}; sys.argv=['dgraudit',*sys.argv[1:]]; runpy.run_module('dgraudit',run_name='__main__')`]
+      : ['-m', 'dgraudit'];
+    const execution = spawnSync(process.env.DGRAINSIGHT_PYTHON || 'python', [
+      ...entry, 'audit', '--config', config, '--output', output,
     ], { cwd: ROOT, encoding: 'utf8' });
     assert.equal(execution.status, 0, `${execution.stdout}\n${execution.stderr}`);
     const session = JSON.parse(fs.readFileSync(output, 'utf8'));

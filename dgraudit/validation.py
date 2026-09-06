@@ -584,7 +584,7 @@ class MSGNetValidationSpec(AdapterValidationSpec):
     def selection(self, model_name, dataset_name, relation, variables, context, broader):
         sample, source, target = int(relation["sample"]), int(relation["source"]), int(relation["target"])
         layer, scale = int(context["layer"]), int(context["scale_index"])
-        common = {"model": model_name, "dataset": dataset_name, "sample_id": f"test:{sample}", "sample_index": sample, "source": source, "target": target, "source_name": variables[source], "target_name": variables[target], "scope": "broader_context" if broader else "local"}
+        common = {"model": model_name, "dataset": dataset_name, "sample_id": f"test:{sample}", "sample_index": sample, "source": source, "target": target, "source_name": f"G{source}", "target_name": f"G{target}", "scope": "broader_context" if broader else "local"}
         return {**common, "context_type": "scale_set" if broader else "scale", "context_id": f"layer:{layer}:scale-set:all" if broader else f"layer:{layer}:scale:{scale}", "context_index": "all_applicable" if broader else scale, "layer": layer, "candidate_scope": "all_scales" if broader else "single_scale", "candidate_id": f"quick:msgnet:{'all' if broader else f'scale:{scale}'}:{source}->{target}", "candidate_native_context_type": "scale", "candidate_retained_contexts": [0, 1, 2] if broader else [scale], "candidate_identity": {} if broader else {"scale_index": scale}}
 
     def graph_effect_metadata(self, context: Mapping[str, Any]) -> Mapping[str, Any]:

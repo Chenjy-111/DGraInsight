@@ -12,6 +12,7 @@ from pathlib import Path
 from dgraudit.cli.validate_audit import validate_config_file
 from dgraudit.cli.validate_session_v2 import validate_json_schema
 from dgraudit.v2.config import validate_audit_config_v2
+from dgraudit.msgnet_semantics import correct_legacy_graph
 from dgraudit.v2.controls import ControlProtocolError, build_case_evidence
 from dgraudit.v2.families import canonical_hash
 from dgraudit.v2.frozen import load_dgraformer_frozen_inputs, load_msgnet_frozen_inputs
@@ -55,6 +56,7 @@ class GraphRegressionTests(unittest.TestCase):
 
     def test_msgnet_frozen14_shared_test_zero_graph_core_is_exact(self) -> None:
         old = json.loads((ROOT / "tests/fixtures/msgnet_graph_core_baseline.json").read_text(encoding="utf-8"))
+        correct_legacy_graph(old)
         new = load_msgnet_frozen_inputs(include_intervention_trajectories=False)[1]
         old_sample = next(sample for sample in old["samples"] if sample["sample_index"] == 0)
         new_sample = next(sample for sample in new["samples"] if sample["sample_index"] == 0)

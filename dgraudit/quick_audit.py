@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from .msgnet_semantics import graph_semantics
+
 import hashlib
 import json
 import platform
@@ -282,7 +284,7 @@ def run_quick_audit(
                 })
             relation_map[key] = {
                 "relation_id": f"test:{sample_index}:edge:{source}->{target}", "sample_id": f"test:{sample_index}",
-                "source": source, "target": target, "source_name": variables[source], "target_name": variables[target],
+                "source": source, "target": target, "source_name": f"G{source}" if adapter_id == "msgnet" else variables[source], "target_name": f"G{target}" if adapter_id == "msgnet" else variables[target],
                 "native_occurrences": occurrences,
             }
 
@@ -360,6 +362,7 @@ def run_quick_audit(
                 "name": spec.model_name, "adapter": spec.adapter_name, "adapter_id": adapter_id,
                 "native_context_type": spec.native_context_type, "source_repository": None, "source_commit": None,
                 "configuration": model_configuration,
+                **({"graph_semantics": graph_semantics(int(config["adapter_config"]["model"]["c_out"]))} if adapter_id == "msgnet" else {}),
                 **({
                     "adapter_module": config["custom_adapter"]["module"],
                     "adapter_class": config["custom_adapter"]["class"],

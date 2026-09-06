@@ -12,6 +12,7 @@ import numpy as np
 
 from .controls import build_case_evidence
 from .dependence import audit_dependence
+from ..msgnet_semantics import correct_legacy_graph, correct_legacy_member, correct_legacy_controls
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -294,6 +295,23 @@ def load_msgnet_frozen_inputs(*, include_intervention_trajectories: bool = True)
         ))
     dependence = {family["family_id"]: audit_dependence(config["sample_protocol"]["protocol_id"], sample_ids, units, same_continuous_series=True) for family in families}
     provenance = {"frozen_artifacts": dict(manifest["artifact_sha256"])}
+    # Frozen files use native matrix row/column IDs. Preserve IDs and responses;
+    # correct public message direction and node labels together with the graphs.
+    correct_legacy_graph(graph)
+    for family in config["candidate_families"]:
+        for member in family["members"]:
+            correct_legacy_member(member)
+    correct_legacy_controls(cases)
+    replay_path = ROOT / "docs/scientific_validation/msgnet_replay.json"
+    if replay_path.exists():
+        replay = _json(replay_path)
+        if replay["checkpoint_sha256"] != graph["checkpoint"]["sha256"]:
+            raise ValueError("Independent replay report belongs to a different checkpoint")
+        graph["model_specific"]["independent_replay"] = {
+            key: replay[key] for key in ("status", "torch", "device", "baseline_count", "case_count",
+                "baseline_max_abs", "prediction_max_abs", "direct_native_max_abs", "metric_direction_changes")
+        }
+        graph["model_specific"]["independent_replay"].update(report=str(replay_path.relative_to(ROOT)), sha256=_sha256(replay_path))
     return config, graph, cases, dependence, provenance
 
 

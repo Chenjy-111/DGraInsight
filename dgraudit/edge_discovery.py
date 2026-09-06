@@ -52,8 +52,8 @@ def inspect_native_edges(
                 {
                     "source": source,
                     "target": target,
-                    "source_name": variables[source],
-                    "target_name": variables[target],
+                    "source_name": f"G{source}" if spec.adapter_id == "msgnet" else variables[source],
+                    "target_name": f"G{target}" if spec.adapter_id == "msgnet" else variables[target],
                     "weight": float(matrix[source, target]),
                 }
                 for source in range(matrix.shape[0])
