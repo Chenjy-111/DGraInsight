@@ -6,9 +6,19 @@ import argparse
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="python -m dgraudit",
-        description="DGraInsight supported local audit and portable-session tools.",
+        description="DGraInsight offline edge-removal evaluation and legacy audit tools.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+    evaluate = subparsers.add_parser("evaluate", help="Run edge-removal performance evaluation through a model plugin or existing functions.")
+    evaluate.add_argument("--config", required=True)
+    evaluate.add_argument("--output", default="evaluation_results.json")
+    evaluate.add_argument("--resume", action="store_true")
+    export_results = subparsers.add_parser("export-results", help="Package existing predictions or metrics as Evaluation Results.")
+    export_results.add_argument("--input", required=True)
+    export_results.add_argument("--output", required=True)
+    results = subparsers.add_parser("validate-results", help="Validate result structure and recompute metrics when arrays are available.")
+    results.add_argument("results")
+    subparsers.add_parser("plugins", help="List maintained model evaluation plugins and compatibility boundaries.")
     validate = subparsers.add_parser("validate", help="Validate Audit Config v2 and its applicable V01-V11 checks.")
     validate.add_argument("--config", required=True)
     validate.add_argument("--output")
@@ -19,7 +29,7 @@ def main() -> int:
     validate_adapter.add_argument("--config", required=True)
     validate_adapter.add_argument("--output")
     validate_adapter.add_argument("--debug", action="store_true")
-    audit = subparsers.add_parser("audit", help="Run the offline audit and generate a Session v2.")
+    audit = subparsers.add_parser("audit", help="Legacy: run the historical audit and generate Session v2.")
     audit.add_argument("--config", required=True)
     audit.add_argument("--output", default="dgrainsight_session_v2.json")
     audit.add_argument("--no-embedded-trajectories", action="store_true")
@@ -33,7 +43,7 @@ def main() -> int:
     edges.add_argument("--layer", type=int)
     edges.add_argument("--limit", type=int, default=10)
     edges.add_argument("--json", action="store_true", dest="as_json")
-    wizard = subparsers.add_parser("wizard", help="Choose a real native edge interactively and generate a session.")
+    wizard = subparsers.add_parser("wizard", help="Legacy: choose an edge for the historical Session v2 workflow.")
     wizard.add_argument("--config", required=True)
     wizard.add_argument("--output", default="dgrainsight_session_v2.json")
     wizard.add_argument("--source-root")
@@ -50,6 +60,9 @@ def main() -> int:
     wizard.add_argument("--yes", action="store_true")
     wizard.add_argument("--mode", choices=("auto", "quick", "formal"), default="auto")
     args = parser.parse_args()
+    if args.command in {"evaluate", "export-results", "validate-results", "plugins"}:
+        from dgraudit.cli.evaluate import execute
+        return execute(args)
     if args.command == "validate-session":
         from dgraudit.cli.validate_session_v2 import main as validate_session_main
 

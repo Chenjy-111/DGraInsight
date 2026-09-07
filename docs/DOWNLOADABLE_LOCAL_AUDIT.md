@@ -1,3 +1,5 @@
+> Historical Session v2 audit documentation. For the current MAE/MSE performance workflow, existing-result import, function backends and model plugins, use the [Evaluation guide](EVALUATION_GUIDE.md). Legacy controls, D and formal inference are not the current system objective.
+
 # Offline local audit workflow
 
 Keep upstream model source, checkpoint, and dataset files outside the DGraInsight repository. Edit a Config v2 template with those local paths, then run `validate`, `edges` or `wizard`, and `validate-session`.

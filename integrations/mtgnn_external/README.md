@@ -1,98 +1,35 @@
-# External MTGNN Adapter — Quick Start
+# MTGNN external evaluation backend
 
-This module connects public MTGNN code to DGraInsight through the external `custom` adapter route.
-It produces a Portable Audit Session v2 JSON that can be imported into the website.
+MTGNN now uses Offline Edge-Removal Evaluation: baseline and removal MAE/MSE,
+forecast arrays and descriptive sample comparisons. It does not compute matched
+controls, D or p/q values in the new workflow.
 
-## What you need
+1. Prepare MTGNN source, an architecture-matching checkpoint and its native numeric dataset.
+2. Set source_root, checkpoint, dataset and adapter_config in
+   `configs/evaluation_mtgnn_external.json`.
+3. Run from the repository root:
 
-- MTGNN source containing `net.py` and `util.py`;
-- a checkpoint whose architecture matches the config;
-- a comma-delimited numeric dataset without a header or date column;
-- one Config v2 file.
-
-Start from:
-
-```text
-configs/custom_adapter_mtgnn_exchange.json
+```bash
+python -m dgraudit evaluate --config configs/evaluation_mtgnn_external.json --output outputs/mtgnn_external_evaluation.json
+python -m dgraudit validate-results outputs/mtgnn_external_evaluation.json
 ```
 
-Update these config fields for your run:
+Click **Import Evaluation Results** and choose that output file. The native graph is
+interactive; select any stored removal and inspect its errors and forecasts. The
+maintained direct plugin uses `configs/evaluation_mtgnn.json` and the same calculation.
 
-```text
-checkpoint.path and checkpoint.sha256
-dataset.path, dataset.sha256 and dataset.variables
-adapter_config.model_source_root
-adapter_config.model.*
-```
+Canonical arrows follow the first native message-passing branch: source to target maps
+to native [target,source]. The shared adjacency also drives the transpose branch, so
+removing the relation affects the reverse channel there. Native self-loops and mixprop
+normalization remain in place. MTGNN exposes one global graph and no broader-context
+option. Its reference checkpoint emits one output step at forecast lead 3.
 
-`dataset.variables`, the number of data columns, and `model.num_nodes` must match. Model parameters
-must also match the checkpoint used during training.
+`evaluation_backend.py` is the new external factory. `mtgnn_external_adapter.py` and
+`configs/custom_adapter_mtgnn_exchange.json` remain legacy Session v2 integrations for
+historical reproduction; their row/column edge ids must not be interpreted as new
+canonical directions. Generate new results from the model rather than reusing old
+control responses as performance data.
 
-## Generate the JSON
-
-Run from the DGraInsight repository root.
-
-### 1. Validate
-
-```powershell
-python -m dgraudit validate-adapter `
-  --config configs\custom_adapter_mtgnn_exchange.json
-```
-
-Continue only when V01–V09 pass and the report says:
-
-```text
-Quick Inspection readiness: READY
-```
-
-### 2. Select a real learned edge and run the audit
-
-```powershell
-python -m dgraudit wizard `
-  --config configs\custom_adapter_mtgnn_exchange.json `
-  --sample 0 `
-  --limit 10 `
-  --output outputs\mtgnn_session_v2.json
-```
-
-The wizard displays real retained edges from the MTGNN learned graph. Enter an edge number and
-confirm the audit. It writes:
-
-```text
-outputs/mtgnn_session_v2.json
-```
-
-### 3. Import into the website
-
-```powershell
-npm run dev
-```
-
-Open the local website, click **Choose DGraInsight Session**, and select:
-
-```text
-outputs/mtgnn_session_v2.json
-```
-
-The JSON contains the full learned graph for context, but one selected relation is the Quick
-Inspection target. The remaining eligible edge removals are stored as matched controls. The website
-shows the locked audited edge, prediction replay, magnified prediction change, control distribution,
-`D`, graph metadata and provenance.
-
-## If you change the data
-
-Use a checkpoint trained for that data and update the dataset path/hash, node labels, `num_nodes`,
-sequence settings, horizon, normalization and split ratios. Then validate and run the wizard again.
-
-## If validation fails
-
-Run with bounded debug details:
-
-```powershell
-python -m dgraudit validate-adapter `
-  --config configs\custom_adapter_mtgnn_exchange.json `
-  --debug
-```
-
-Do not edit `OFFICIAL_ADAPTER_REGISTRY`; this module is intentionally loaded only through
-`adapter: "custom"`.
+See [the complete Evaluation guide](../../docs/EVALUATION_GUIDE.md) for callback functions,
+metadata, result format, resume and native verification. Original model code and weights
+are not redistributed as part of the evaluation backend.

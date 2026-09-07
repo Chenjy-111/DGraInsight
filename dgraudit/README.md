@@ -1,3 +1,5 @@
+> Historical Session v2 audit documentation. For the current MAE/MSE performance workflow, existing-result import, function backends and model plugins, use the [Evaluation guide](../docs/EVALUATION_GUIDE.md). Legacy controls, D and formal inference are not the current system objective.
+
 # DGraInsight audit toolkit
 
 `dgraudit` is the offline evidence-audit toolkit used by DGraInsight. It validates a declared audit configuration, loads an exact model checkpoint through a model adapter, inspects native learned-graph relations, performs declared interventions and matched-control comparisons, and writes a Portable Audit Session v2 for validation or browser inspection.

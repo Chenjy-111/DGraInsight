@@ -1,0 +1,375 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DGraInsight Evaluation Results v1",
+  "description": "Dimensions, cross-references, uniqueness and metric consistency are additionally checked by the Python and browser validators.",
+  "type": "object",
+  "required": [
+    "version",
+    "model",
+    "dataset",
+    "horizon",
+    "outputs",
+    "nodes",
+    "nodeMeaning",
+    "protocols",
+    "measurement",
+    "provenance",
+    "validation",
+    "runStatus",
+    "samples",
+    "records"
+  ],
+  "properties": {
+    "version": {
+      "const": "evaluation.v1"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dataset": {
+      "type": "string",
+      "minLength": 1
+    },
+    "horizon": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "nodeMeaning": {
+      "type": "string",
+      "minLength": 1
+    },
+    "protocols": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "scope",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "required": [
+        "space",
+        "units",
+        "aggregation"
+      ],
+      "properties": {
+        "space": {
+          "type": "string",
+          "minLength": 1
+        },
+        "units": {
+          "type": "string",
+          "minLength": 1
+        },
+        "aggregation": {
+          "const": "mean_all_steps_outputs"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object"
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "identity",
+        "nativeIntervention"
+      ],
+      "properties": {
+        "identity": {
+          "type": "object",
+          "required": [
+            "status",
+            "detail"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "passed",
+                "failed",
+                "not_checked"
+              ]
+            },
+            "detail": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "nativeIntervention": {
+          "type": "object",
+          "required": [
+            "status",
+            "detail"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "passed",
+                "failed",
+                "not_checked"
+              ]
+            },
+            "detail": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "runStatus": {
+      "enum": [
+        "complete",
+        "partial"
+      ]
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "contexts",
+          "baselineMetrics"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contexts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "label",
+                "edges"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "edges": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "source",
+                      "target"
+                    ],
+                    "properties": {
+                      "source": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "target": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "weight": {
+                        "type": "number",
+                        "not": {
+                          "const": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "baselineMetrics": {
+            "type": "object",
+            "required": [
+              "mae",
+              "mse"
+            ],
+            "properties": {
+              "mae": {
+                "type": "number",
+                "minimum": 0
+              },
+              "mse": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "truth": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "baselinePrediction": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "sampleId",
+          "protocolId",
+          "contextIds",
+          "label",
+          "metrics"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sampleId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "protocolId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contextIds": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metrics": {
+            "type": "object",
+            "required": [
+              "mae",
+              "mse"
+            ],
+            "properties": {
+              "mae": {
+                "type": "number",
+                "minimum": 0
+              },
+              "mse": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "prediction": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "dependentRequired": {
+          "source": [
+            "target"
+          ],
+          "target": [
+            "source"
+          ]
+        }
+      }
+    }
+  }
+}

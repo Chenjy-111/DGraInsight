@@ -1,0 +1,13 @@
+{
+  "version": "evaluation.config.v1",
+  "plugin": "external",
+  "backend": {
+    "source_root": "../integrations/contract_fixture",
+    "module": "adapter",
+    "class": "FixtureAdapter"
+  },
+  "samples": [
+    0,
+    1
+  ]
+}

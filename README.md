@@ -2,7 +2,33 @@
 
 DGraInsight displays offline edge-removal forecast performance for learned graph relations in multivariate forecasting models. The built-in page uses the independent `performance.v1` namespace and a single Summary: select an effective edge, compare MAE/MSE across deletion scopes, and inspect signed error changes. See [performance data, reproduction and acceptance](docs/PERFORMANCE_V1.md). The earlier Session v2 audit tooling remains available for historical traceability; its results are not used by the new performance Summary.
 
-## Current evidence protocol
+## Current offline evaluation
+
+The system now evaluates forecast performance under declared edge removal. It supports
+three routes through `evaluation.v1`: import existing predictions/metrics, connect existing
+Python functions, or run maintained DGraFormer/MSGNet/MTGNN model backends.
+Graph nodes and forecast outputs are independent; horizon, dataset, contexts and scopes
+are declared by each experiment. Controls, D and p/q inference are not used in this workflow.
+
+```bash
+python -m dgraudit plugins
+python -m dgraudit evaluate --config configs/evaluation_functions_example.json --output outputs/functions_evaluation.json
+python -m dgraudit evaluate --config configs/evaluation_mtgnn.json --output outputs/mtgnn_evaluation.json
+python -m dgraudit validate-results outputs/mtgnn_evaluation.json
+```
+
+Click **Import Evaluation Results**, or **Explore MTGNN** to view its new reference run.
+See the [Evaluation guide](docs/EVALUATION_GUIDE.md) for all three routes, dimensions,
+semantics, verification, partial results and resume. On Windows use
+`Start-DGraInsight-Evaluation.cmd <config> <output>` with a compatible Python environment.
+The old audit launcher and commands remain historical interfaces.
+
+## Historical Session v2 protocol and tools
+
+The following sections document the earlier audit protocol. They do not describe the new
+evaluation calculation or the current custom-model performance workflow.
+
+
 
 Formal evidence is candidate-relation-level across predeclared samples/tests. Each active unit stores the focal response, all unique eligible control responses, and `D = focal - control mean`. The formal layer then applies the declared dependence-aware primary inference and BH correction within frozen hypothesis families. Case records are descriptive and never carry formal p/q values.
 
@@ -104,3 +130,13 @@ Raw third-party datasets, local checkpoints, upstream model source trees, secret
 This repository does not yet contain an owner-approved `LICENSE` or verified `CITATION.cff`; those remain publication-governance blockers and do not affect the local technical regression gates.
 
 MSGNet graph direction and node naming were corrected on 2026-09-06. Its archived predictions have a recorded CPU/CUDA reproduction discrepancy; see [the scientific verification report](docs/SCIENTIFIC_SEMANTICS_REPAIR.md) before interpreting small performance changes.
+
+
+### I have a new graph forecasting model
+
+Use a six-method [Thin Adapter](dgraudit/thin_adapter.py) around the original project;
+read the [step-by-step guide](docs/EVALUATION_GUIDE.md#i-have-a-new-graph-forecasting-model).
+Validate with `python -m dgrainsight validate <config.json>`, then execute with
+`python -m dgrainsight run <config.json> --output outputs/my_run/manifest.json` and import
+that file in the generic Web. Existing results need only the result schema. Execution
+additionally requires a supported native intervention. No automatic universal-model claim.

@@ -17,6 +17,7 @@ import { DgraSessionV2Evidence, MsgnetSessionV2Evidence } from './components/Ses
 import { useDemoStore } from './store/useDemoStore';
 import { useWorkflowStore, type WorkflowModel } from './store/useWorkflowStore';
 import { useAuditSessionStore } from './store/useAuditSessionStore';
+import { EvaluationWorkspace } from './components/EvaluationWorkspace';
 
 export default function App() {
   const model = useWorkflowStore(state => state.model);
@@ -27,8 +28,10 @@ export default function App() {
   const setDemo = useDemoStore(state => state.set);
   const source = useAuditSessionStore(state => state.source);
   const sessionV2 = useAuditSessionStore(state => state.sessionV2);
+  const evaluation = useAuditSessionStore(state => state.evaluation);
+  const generation = useAuditSessionStore(state => state.generation);
   const importedV2 = source === 'imported' && sessionV2 !== null;
-  const imported = importedV2;
+  const imported = importedV2 || evaluation !== null;
 
   useEffect(() => { void load(); }, [load]);
 
@@ -38,15 +41,15 @@ export default function App() {
     <ResearchMotivation/>
     <MethodExplainer/>
     <SystemOverview/>
-    <WorkflowBar/>
+    {!evaluation && <WorkflowBar/>}
     <section id="discovery-workspace" className="border-b border-line bg-white">
-      <WorkspaceHeader number="01" title="Pattern Discovery" text={imported ? 'Inspect the stored graph, forecast accuracy changes and available response evidence.' : 'Select an edge to compare forecast errors before and after removal.'}/>
-      {imported ? <ImportedModelLock model={sessionV2!.model.name as string} context={sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
+      <WorkspaceHeader number="01" title="Edge-Removal Evaluation" text="Select a stored relation and compare forecast errors before and after removal."/>
+      {imported ? <ImportedModelLock model={evaluation?.model ?? sessionV2!.model.name as string} context={evaluation ? 'declared' : sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
         if (next === model) return;
         if (next === 'DGraFormer') { setDemo('view', 'graph'); setDemo('graphLayout', '3d-timeline'); }
         setModel(next);
       }}/>}
-      {importedV2
+      {evaluation ? <EvaluationWorkspace key={generation} data={evaluation}/> : importedV2
         ? <ImportedSessionV2Workspace key={String((sessionV2.session as any).session_id)} session={sessionV2}/>
         : model === 'DGraFormer'
           ? <>
@@ -62,7 +65,7 @@ export default function App() {
     <SystemArchitecture/>
     <Limitations/>
     <CitationSection/>
-    <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Forecast accuracy and response stability through edge removal</footer>
+    <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Offline edge-removal evaluation and forecast performance exploration</footer>
   </div>;
 }
 

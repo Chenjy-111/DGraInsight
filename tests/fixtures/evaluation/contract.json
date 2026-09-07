@@ -1,0 +1,657 @@
+{
+  "model": "Synthetic function example",
+  "dataset": "Synthetic mechanism fixture",
+  "horizon": 3,
+  "outputs": [
+    "Forecast A",
+    "Forecast B"
+  ],
+  "nodes": [
+    {
+      "id": "latent-a",
+      "label": "latent-a",
+      "semantic_type": "latent"
+    },
+    {
+      "id": "latent-b",
+      "label": "latent-b",
+      "semantic_type": "latent"
+    },
+    {
+      "id": "latent-c",
+      "label": "latent-c",
+      "semantic_type": "latent"
+    },
+    {
+      "id": "latent-d",
+      "label": "latent-d",
+      "semantic_type": "latent"
+    }
+  ],
+  "nodeMeaning": "Four synthetic latent positions. They are not the two forecast outputs.",
+  "protocols": [
+    {
+      "id": "single",
+      "label": "Encoder relation removal",
+      "scope": "single_encoder",
+      "description": "Set native [target,source] to zero in the encoder. Additive self contribution stays unchanged; no renormalization. Signed graph weights are retained."
+    }
+  ],
+  "measurement": {
+    "space": "synthetic output scale",
+    "units": "synthetic units",
+    "aggregation": "mean_all_steps_outputs"
+  },
+  "provenance": {
+    "kind": "synthetic_example",
+    "checkpoint": null,
+    "note": "Deterministic integration example, not a trained model.",
+    "adapterContract": "thin-adapter.v1",
+    "backendModule": "adapter",
+    "backendFactory": "FixtureAdapter",
+    "backendModuleSha256": "7d3f9cef997d6c19f57fa8b36a2f9b5c36a80f066ea92611cf7933c616681ec7",
+    "python": "3.14.2",
+    "preflight": {
+      "version": "evaluation.validation.v1",
+      "status": "PASS",
+      "checks": [
+        {
+          "id": "V1",
+          "label": "Adapter load",
+          "status": "PASS",
+          "detail": "External adapter or maintained plugin loaded; model metadata available."
+        },
+        {
+          "id": "V2",
+          "label": "Sample load",
+          "status": "PASS",
+          "detail": "Explicit sample 0; finite truth [3,2]."
+        },
+        {
+          "id": "V3",
+          "label": "Baseline forward",
+          "status": "PASS",
+          "detail": "Original forward returned finite [3,2] prediction."
+        },
+        {
+          "id": "V4",
+          "label": "Relation extraction",
+          "status": "PASS",
+          "detail": "1 contexts, 4 eligible relations; selected identity validated."
+        },
+        {
+          "id": "V5",
+          "label": "Identity intervention",
+          "status": "PASS",
+          "detail": "All contexts matched; max difference=0, atol=1e-6, rtol=1e-5. Does not by itself establish correct removal."
+        },
+        {
+          "id": "V6",
+          "label": "Edge intervention",
+          "status": "PASS",
+          "detail": "Real requested intervention returned finite [3,2] forecast; a zero response is allowed."
+        }
+      ],
+      "graphStateVerification": {
+        "status": "unavailable",
+        "detail": "Backend did not report native graph-state verification."
+      },
+      "sampleId": "0",
+      "request": {
+        "sampleId": "0",
+        "protocolId": "single",
+        "contextIds": [
+          "encoder:0"
+        ],
+        "source": "latent-a",
+        "target": "latent-b",
+        "label": "latent-a -> latent-b"
+      },
+      "baselineMetrics": {
+        "mae": 0.5166666666666666,
+        "mse": 0.4676666666666667
+      },
+      "interventionMetrics": {
+        "mae": 0.63,
+        "mse": 0.5124666666666667
+      }
+    },
+    "evaluationConfig": {
+      "version": "evaluation.config.v1",
+      "plugin": "external",
+      "backend": {
+        "source_root": "../integrations/contract_fixture",
+        "module": "adapter",
+        "class": "FixtureAdapter"
+      },
+      "samples": [
+        0,
+        1
+      ]
+    },
+    "timestampUtc": "2026-09-07T02:27:43.243908+00:00",
+    "runFingerprint": "462c4af9688ebf7755ffa3736532f0a4edff3387506b561c7240a102e7b98499"
+  },
+  "sourceMode": "adapter",
+  "capabilities": {
+    "supports_single_context": true,
+    "supports_all_contexts": false,
+    "supports_batch": false,
+    "directed": true,
+    "node_semantics": "latent"
+  },
+  "version": "evaluation.v1",
+  "runStatus": "complete",
+  "samples": [
+    {
+      "id": "0",
+      "truth": [
+        [
+          1.0,
+          2.0
+        ],
+        [
+          1.2,
+          2.3
+        ],
+        [
+          1.4,
+          2.6
+        ]
+      ],
+      "baselinePrediction": [
+        [
+          1.08,
+          1.14
+        ],
+        [
+          1.1800000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.28,
+          1.54
+        ]
+      ],
+      "baselineMetrics": {
+        "mae": 0.5166666666666666,
+        "mse": 0.4676666666666667
+      },
+      "contexts": [
+        {
+          "id": "encoder:0",
+          "type": "latent_layer",
+          "label": "Fixture encoder",
+          "index": null,
+          "edges": [
+            {
+              "source": "latent-a",
+              "target": "latent-b"
+            },
+            {
+              "source": "latent-b",
+              "target": "latent-c"
+            },
+            {
+              "source": "latent-a",
+              "target": "latent-d"
+            },
+            {
+              "source": "latent-c",
+              "target": "latent-d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "truth": [
+        [
+          1.0,
+          2.0
+        ],
+        [
+          1.2,
+          2.3
+        ],
+        [
+          1.4,
+          2.6
+        ]
+      ],
+      "baselinePrediction": [
+        [
+          1.36,
+          1.26
+        ],
+        [
+          1.4600000000000002,
+          1.46
+        ],
+        [
+          1.56,
+          1.6600000000000001
+        ]
+      ],
+      "baselineMetrics": {
+        "mae": 0.55,
+        "mse": 0.39326666666666665
+      },
+      "contexts": [
+        {
+          "id": "encoder:0",
+          "type": "latent_layer",
+          "label": "Fixture encoder",
+          "index": null,
+          "edges": [
+            {
+              "source": "latent-a",
+              "target": "latent-b"
+            },
+            {
+              "source": "latent-b",
+              "target": "latent-c"
+            },
+            {
+              "source": "latent-a",
+              "target": "latent-d"
+            },
+            {
+              "source": "latent-c",
+              "target": "latent-d"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "records": [
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-b",
+      "label": "latent-a → latent-b",
+      "id": "5a33385ebdca0bb9d016802a",
+      "prediction": [
+        [
+          0.8,
+          1.14
+        ],
+        [
+          0.9,
+          1.3399999999999999
+        ],
+        [
+          1.0,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.63,
+        "mse": 0.5124666666666667
+      },
+      "errorChange": {
+        "mae": 0.1133333333333334,
+        "mse": 0.04480000000000006
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.05999999999999994,
+          "mse": 0.01679999999999998
+        },
+        {
+          "mae": 0.14,
+          "mse": 0.04479999999999995
+        },
+        {
+          "mae": 0.14,
+          "mse": 0.07279999999999998
+        }
+      ]
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-b",
+      "target": "latent-c",
+      "label": "latent-b → latent-c",
+      "id": "6840f15778c212219642d454",
+      "prediction": [
+        [
+          1.08,
+          1.14
+        ],
+        [
+          1.1800000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.28,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5166666666666666,
+        "mse": 0.4676666666666667
+      },
+      "errorChange": {
+        "mae": 0.0,
+        "mse": 0.0
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        },
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        },
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        }
+      ]
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-d",
+      "label": "latent-a → latent-d",
+      "id": "bb11baaac9e998383079a38a",
+      "prediction": [
+        [
+          1.08,
+          1.02
+        ],
+        [
+          1.1800000000000002,
+          1.22
+        ],
+        [
+          1.28,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5766666666666667,
+        "mse": 0.5900666666666666
+      },
+      "errorChange": {
+        "mae": 0.06000000000000005,
+        "mse": 0.12239999999999995
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.05999999999999994,
+          "mse": 0.11039999999999989
+        },
+        {
+          "mae": 0.05999999999999994,
+          "mse": 0.12239999999999984
+        },
+        {
+          "mae": 0.06000000000000005,
+          "mse": 0.13440000000000007
+        }
+      ]
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-c",
+      "target": "latent-d",
+      "label": "latent-c → latent-d",
+      "id": "1f64884c943317e902c63c29",
+      "prediction": [
+        [
+          1.08,
+          1.02
+        ],
+        [
+          1.1800000000000002,
+          1.22
+        ],
+        [
+          1.28,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5766666666666667,
+        "mse": 0.5900666666666666
+      },
+      "errorChange": {
+        "mae": 0.06000000000000005,
+        "mse": 0.12239999999999995
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.05999999999999994,
+          "mse": 0.11039999999999989
+        },
+        {
+          "mae": 0.05999999999999994,
+          "mse": 0.12239999999999984
+        },
+        {
+          "mae": 0.06000000000000005,
+          "mse": 0.13440000000000007
+        }
+      ]
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-b",
+      "label": "latent-a → latent-b",
+      "id": "c3645db32e8185fab23801f1",
+      "prediction": [
+        [
+          0.8,
+          1.26
+        ],
+        [
+          0.9,
+          1.46
+        ],
+        [
+          1.0,
+          1.6600000000000001
+        ]
+      ],
+      "metrics": {
+        "mae": 0.57,
+        "mse": 0.4044666666666666
+      },
+      "errorChange": {
+        "mae": 0.019999999999999907,
+        "mse": 0.011199999999999932
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": -0.08000000000000007,
+          "mse": -0.04480000000000006
+        },
+        {
+          "mae": 0.019999999999999796,
+          "mse": 0.011199999999999932
+        },
+        {
+          "mae": 0.11999999999999988,
+          "mse": 0.06719999999999993
+        }
+      ]
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-b",
+      "target": "latent-c",
+      "label": "latent-b → latent-c",
+      "id": "be19405353aeda5d56eff3f0",
+      "prediction": [
+        [
+          1.36,
+          1.26
+        ],
+        [
+          1.4600000000000002,
+          1.46
+        ],
+        [
+          1.56,
+          1.6600000000000001
+        ]
+      ],
+      "metrics": {
+        "mae": 0.55,
+        "mse": 0.39326666666666665
+      },
+      "errorChange": {
+        "mae": 0.0,
+        "mse": 0.0
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        },
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        },
+        {
+          "mae": 0.0,
+          "mse": 0.0
+        }
+      ]
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-d",
+      "label": "latent-a → latent-d",
+      "id": "95bcec7bff137afa459ab8f7",
+      "prediction": [
+        [
+          1.36,
+          1.02
+        ],
+        [
+          1.4600000000000002,
+          1.22
+        ],
+        [
+          1.56,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.67,
+        "mse": 0.6236666666666667
+      },
+      "errorChange": {
+        "mae": 0.12,
+        "mse": 0.23040000000000005
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.12,
+          "mse": 0.20640000000000003
+        },
+        {
+          "mae": 0.12,
+          "mse": 0.23039999999999994
+        },
+        {
+          "mae": 0.1200000000000001,
+          "mse": 0.2544000000000002
+        }
+      ]
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-c",
+      "target": "latent-d",
+      "label": "latent-c → latent-d",
+      "id": "db2498b297518c3c56cdbcb9",
+      "prediction": [
+        [
+          1.36,
+          1.14
+        ],
+        [
+          1.4600000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.56,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.6100000000000001,
+        "mse": 0.5012666666666667
+      },
+      "errorChange": {
+        "mae": 0.06000000000000005,
+        "mse": 0.1080000000000001
+      },
+      "forecastStepErrorChange": [
+        {
+          "mae": 0.06000000000000005,
+          "mse": 0.09600000000000009
+        },
+        {
+          "mae": 0.06000000000000005,
+          "mse": 0.1080000000000001
+        },
+        {
+          "mae": 0.06000000000000005,
+          "mse": 0.1200000000000001
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "identity": {
+      "status": "passed",
+      "detail": "Every selected sample/context matched baseline, atol=1e-6, rtol=1e-5. This does not establish correct edge removal."
+    },
+    "nativeIntervention": {
+      "status": "not_checked",
+      "detail": "The runner does not independently inspect native message passing. Review the backend's implementation and native validation reports."
+    }
+  }
+}

@@ -143,3 +143,6 @@ body {
 .performance-summary td { font-variant-numeric: tabular-nums; font-size: 13px; }
 .performance-summary h3 {font-weight:600;font-size:18px;}
 .performance-summary { font-family: Inter, "Microsoft YaHei", "PingFang SC", sans-serif; scroll-margin-top: 65px; }
+
+.evaluation-graph-edge:focus { outline: none; }
+.evaluation-graph-edge:focus-visible path:last-child { stroke: #e07b25; stroke-width: 3px; }

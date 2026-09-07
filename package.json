@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Interactive evidence validation for learned graph structures in multivariate forecasting.",
+  "description": "Interactive offline edge-removal evaluation for graph forecasting models.",
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "build": "tsc -b && vite build --config vite.config.ts",
@@ -13,7 +13,9 @@
     "preview": "vite preview --config vite.config.ts",
     "deploy": "npm run build && gh-pages -d dist",
     "test:performance": "node tests/performanceRegression.mjs",
-    "test:performance-browser": "node tests/performanceBrowserRegression.mjs"
+    "test:performance-browser": "node tests/performanceBrowserRegression.mjs",
+    "test:evaluation": "python -X utf8 -m unittest discover -s tests -p test_evaluation.py && python -X utf8 -m unittest discover -s tests -p test_thin_adapter.py && node tests/evaluationRegression.mjs",
+    "test:evaluation-browser": "node tests/evaluationBrowserRegression.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

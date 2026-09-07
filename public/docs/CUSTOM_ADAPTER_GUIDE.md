@@ -1,3 +1,5 @@
+> Historical Session v2 audit documentation. For the current MAE/MSE performance workflow, existing-result import, function backends and model plugins, use the [Evaluation guide](EVALUATION_GUIDE.md). Legacy controls, D and formal inference are not the current system objective.
+
 # DGraInsight Custom Adapter Guide
 
 DGraInsight can audit additional learned-graph forecasting architectures through an explicit,

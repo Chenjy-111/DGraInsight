@@ -6,7 +6,7 @@ const stages = [
   ['Discover','Explore graph contexts'],
   ['Select','Choose a relation'],
   ['Test','Replay its removal'],
-  ['Validate','Assess accuracy and stability'],
-  ['Output','Accuracy + formal support'],
+  ['Validate','Compare MAE and MSE'],
+  ['Output','Performance results'],
 ];
-export function SystemOverview(){return <Section id="overview" eyebrow="Workflow" title="One intervention, two complementary assessments" intro="Follow the same relation from graph discovery to forecast error changes and response consistency across audited samples."><div className="card p-5"><div className="flex overflow-x-auto">{stages.map(([title,body],i)=><div key={title} className="flex min-w-[185px] flex-1 items-center"><div className="min-h-[116px] flex-1 rounded-xl border border-line bg-white p-4"><div className="text-[9px] font-semibold uppercase tracking-wider text-accent">{String(i+1).padStart(2,'0')}</div><h3 className="mt-2 text-[15px] font-semibold">{title}</h3><p className="mt-2 text-[10px] leading-relaxed text-ink-400">{body}</p></div>{i<stages.length-1&&<ArrowRight className="mx-2 shrink-0 text-accent" size={16}/>}</div>)}</div></div></Section>}
+export function SystemOverview(){return <Section id="overview" eyebrow="Workflow" title="From model execution to interactive evaluation" intro="Follow a relation from its native graph context to forecast error changes across available samples."><div className="card p-5"><div className="flex overflow-x-auto">{stages.map(([title,body],i)=><div key={title} className="flex min-w-[185px] flex-1 items-center"><div className="min-h-[116px] flex-1 rounded-xl border border-line bg-white p-4"><div className="text-[9px] font-semibold uppercase tracking-wider text-accent">{String(i+1).padStart(2,'0')}</div><h3 className="mt-2 text-[15px] font-semibold">{title}</h3><p className="mt-2 text-[10px] leading-relaxed text-ink-400">{body}</p></div>{i<stages.length-1&&<ArrowRight className="mx-2 shrink-0 text-accent" size={16}/>}</div>)}</div></div></Section>}

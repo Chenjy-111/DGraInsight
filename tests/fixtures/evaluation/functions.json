@@ -1,0 +1,440 @@
+{
+  "model": "Synthetic function example",
+  "dataset": "Synthetic mechanism fixture",
+  "horizon": 3,
+  "outputs": [
+    "Forecast A",
+    "Forecast B"
+  ],
+  "nodes": [
+    {
+      "id": "latent-a",
+      "label": "latent-a"
+    },
+    {
+      "id": "latent-b",
+      "label": "latent-b"
+    },
+    {
+      "id": "latent-c",
+      "label": "latent-c"
+    },
+    {
+      "id": "latent-d",
+      "label": "latent-d"
+    }
+  ],
+  "nodeMeaning": "Four synthetic latent positions. They are not the two forecast outputs.",
+  "protocols": [
+    {
+      "id": "single",
+      "label": "Encoder relation removal",
+      "scope": "single_encoder",
+      "description": "Set native [target,source] to zero in the encoder. Additive self contribution stays unchanged; no renormalization. Signed graph weights are retained."
+    }
+  ],
+  "measurement": {
+    "space": "synthetic output scale",
+    "units": "synthetic units",
+    "aggregation": "mean_all_steps_outputs"
+  },
+  "provenance": {
+    "kind": "synthetic_example",
+    "checkpoint": null,
+    "note": "Deterministic integration example, not a trained model.",
+    "backendModule": "evaluation_functions_example",
+    "backendFactory": "create_backend",
+    "backendModuleSha256": "99950974cb96b8c7a6d87a0d0e5537d8ca406555a81b0329a7a190f30cb7d45d",
+    "python": "3.14.2",
+    "evaluationConfig": {
+      "version": "evaluation.config.v1",
+      "plugin": "external",
+      "backend": {
+        "source_root": "../dgraudit/examples",
+        "module": "evaluation_functions_example",
+        "factory": "create_backend"
+      },
+      "samples": [
+        0,
+        1
+      ]
+    },
+    "runFingerprint": "69846875bfb18efffe7cff46cabd6be75c35971af2808a07fc573fcc3bf73a8d"
+  },
+  "version": "evaluation.v1",
+  "runStatus": "complete",
+  "samples": [
+    {
+      "id": "0",
+      "truth": [
+        [
+          1.0,
+          2.0
+        ],
+        [
+          1.2,
+          2.3
+        ],
+        [
+          1.4,
+          2.6
+        ]
+      ],
+      "baselinePrediction": [
+        [
+          1.08,
+          1.14
+        ],
+        [
+          1.1800000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.28,
+          1.54
+        ]
+      ],
+      "baselineMetrics": {
+        "mae": 0.5166666666666666,
+        "mse": 0.4676666666666667
+      },
+      "contexts": [
+        {
+          "id": "encoder:0",
+          "label": "Encoder latent graph",
+          "type": "latent_layer",
+          "edges": [
+            {
+              "source": "latent-a",
+              "target": "latent-b",
+              "weight": 0.7
+            },
+            {
+              "source": "latent-b",
+              "target": "latent-c",
+              "weight": -0.2
+            },
+            {
+              "source": "latent-a",
+              "target": "latent-d",
+              "weight": 0.4
+            },
+            {
+              "source": "latent-c",
+              "target": "latent-d",
+              "weight": 0.8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "1",
+      "truth": [
+        [
+          1.0,
+          2.0
+        ],
+        [
+          1.2,
+          2.3
+        ],
+        [
+          1.4,
+          2.6
+        ]
+      ],
+      "baselinePrediction": [
+        [
+          1.36,
+          1.26
+        ],
+        [
+          1.4600000000000002,
+          1.46
+        ],
+        [
+          1.56,
+          1.6600000000000001
+        ]
+      ],
+      "baselineMetrics": {
+        "mae": 0.55,
+        "mse": 0.39326666666666665
+      },
+      "contexts": [
+        {
+          "id": "encoder:0",
+          "label": "Encoder latent graph",
+          "type": "latent_layer",
+          "edges": [
+            {
+              "source": "latent-a",
+              "target": "latent-b",
+              "weight": 0.7
+            },
+            {
+              "source": "latent-b",
+              "target": "latent-c",
+              "weight": -0.2
+            },
+            {
+              "source": "latent-a",
+              "target": "latent-d",
+              "weight": 0.4
+            },
+            {
+              "source": "latent-c",
+              "target": "latent-d",
+              "weight": 0.8
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "records": [
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-b",
+      "label": "latent-a → latent-b",
+      "id": "5a33385ebdca0bb9d016802a",
+      "prediction": [
+        [
+          0.8,
+          1.14
+        ],
+        [
+          0.9,
+          1.3399999999999999
+        ],
+        [
+          1.0,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.63,
+        "mse": 0.5124666666666667
+      }
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-b",
+      "target": "latent-c",
+      "label": "latent-b → latent-c",
+      "id": "6840f15778c212219642d454",
+      "prediction": [
+        [
+          1.08,
+          1.14
+        ],
+        [
+          1.1800000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.28,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5166666666666666,
+        "mse": 0.4676666666666667
+      }
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-d",
+      "label": "latent-a → latent-d",
+      "id": "bb11baaac9e998383079a38a",
+      "prediction": [
+        [
+          1.08,
+          1.02
+        ],
+        [
+          1.1800000000000002,
+          1.22
+        ],
+        [
+          1.28,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5766666666666667,
+        "mse": 0.5900666666666666
+      }
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-c",
+      "target": "latent-d",
+      "label": "latent-c → latent-d",
+      "id": "1f64884c943317e902c63c29",
+      "prediction": [
+        [
+          1.08,
+          1.02
+        ],
+        [
+          1.1800000000000002,
+          1.22
+        ],
+        [
+          1.28,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.5766666666666667,
+        "mse": 0.5900666666666666
+      }
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-b",
+      "label": "latent-a → latent-b",
+      "id": "c3645db32e8185fab23801f1",
+      "prediction": [
+        [
+          0.8,
+          1.26
+        ],
+        [
+          0.9,
+          1.46
+        ],
+        [
+          1.0,
+          1.6600000000000001
+        ]
+      ],
+      "metrics": {
+        "mae": 0.57,
+        "mse": 0.4044666666666666
+      }
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-b",
+      "target": "latent-c",
+      "label": "latent-b → latent-c",
+      "id": "be19405353aeda5d56eff3f0",
+      "prediction": [
+        [
+          1.36,
+          1.26
+        ],
+        [
+          1.4600000000000002,
+          1.46
+        ],
+        [
+          1.56,
+          1.6600000000000001
+        ]
+      ],
+      "metrics": {
+        "mae": 0.55,
+        "mse": 0.39326666666666665
+      }
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-a",
+      "target": "latent-d",
+      "label": "latent-a → latent-d",
+      "id": "95bcec7bff137afa459ab8f7",
+      "prediction": [
+        [
+          1.36,
+          1.02
+        ],
+        [
+          1.4600000000000002,
+          1.22
+        ],
+        [
+          1.56,
+          1.42
+        ]
+      ],
+      "metrics": {
+        "mae": 0.67,
+        "mse": 0.6236666666666667
+      }
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "latent-c",
+      "target": "latent-d",
+      "label": "latent-c → latent-d",
+      "id": "db2498b297518c3c56cdbcb9",
+      "prediction": [
+        [
+          1.36,
+          1.14
+        ],
+        [
+          1.4600000000000002,
+          1.3399999999999999
+        ],
+        [
+          1.56,
+          1.54
+        ]
+      ],
+      "metrics": {
+        "mae": 0.6100000000000001,
+        "mse": 0.5012666666666667
+      }
+    }
+  ],
+  "validation": {
+    "identity": {
+      "status": "passed",
+      "detail": "Every selected sample/context matched baseline, atol=1e-6, rtol=1e-5. This does not establish correct edge removal."
+    },
+    "nativeIntervention": {
+      "status": "not_checked",
+      "detail": "The runner does not independently inspect native message passing. Review the backend's implementation and native validation reports."
+    }
+  }
+}

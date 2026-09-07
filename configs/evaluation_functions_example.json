@@ -1,0 +1,10 @@
+{
+  "version": "evaluation.config.v1",
+  "plugin": "external",
+  "backend": {
+    "source_root": "../dgraudit/examples",
+    "module": "evaluation_functions_example",
+    "factory": "create_backend"
+  },
+  "samples": [0, 1]
+}

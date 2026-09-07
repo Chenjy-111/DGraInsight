@@ -1,3 +1,5 @@
+> Historical Session v2 audit documentation. For the current MAE/MSE performance workflow, existing-result import, function backends and model plugins, use the [Evaluation guide](EVALUATION_GUIDE.md). Legacy controls, D and formal inference are not the current system objective.
+
 # Supported local audit adapters
 
 DGraInsight provides maintained official reference adapters for DGraFormer, MSGNet, and MTGNN through Config v2 templates:

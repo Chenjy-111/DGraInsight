@@ -1,0 +1,11 @@
+{
+  "model": "MTGNN",
+  "method": "Native gc forward hook, no adapter removal helper; inspect nconv matrices in both branches",
+  "direction": "nconv ncwl,vw->ncvl: native[target,source]; transpose branch changes reverse channel",
+  "samples": 3,
+  "records": 84,
+  "consumedMatrixChecks": 1680,
+  "maxPredictionDifference": 0.0,
+  "status": "passed",
+  "failures": []
+}
