@@ -1,0 +1,23 @@
+diff --git a/model/AGCN.py b/model/AGCN.py
+index ca70d4d..daaf4da 100755
+--- a/model/AGCN.py
++++ b/model/AGCN.py
+@@ -15,2 +15,4 @@ class AVWGCN(nn.Module):
+         supports = F.softmax(F.relu(torch.mm(node_embeddings, node_embeddings.transpose(0, 1))), dim=1)
++        if getattr(self, "support_override", None) is not None:
++            supports = self.support_override(supports)
+         support_set = [torch.eye(node_num).to(supports.device), supports]
+diff --git a/model/BasicTrainer.py b/model/BasicTrainer.py
+index c9a35bb..27e5ffe 100755
+--- a/model/BasicTrainer.py
++++ b/model/BasicTrainer.py
+@@ -48,3 +48,3 @@ class Trainer(object):
+                     label = self.scaler.inverse_transform(label)
+-                loss = self.loss(output.cuda(), label)
++                loss = self.loss(output.to(self.args.device), label)
+                 #a whole batch of Metr_LA is filtered
+@@ -75,3 +75,3 @@ class Trainer(object):
+                 label = self.scaler.inverse_transform(label)
+-            loss = self.loss(output.cuda(), label)
++            loss = self.loss(output.to(self.args.device), label)
+             loss.backward()

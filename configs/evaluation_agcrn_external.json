@@ -1,0 +1,115 @@
+{
+  "version": "evaluation.config.v1",
+  "plugin": "external",
+  "backend": {
+    "source_root": "../integrations/agcrn_external",
+    "module": "agcrn_adapter",
+    "class": "AGCRNAdapter"
+  },
+  "source_root": "../third_party/AGCRN",
+  "checkpoint": {
+    "path": "../integrations/agcrn_external/checkpoint.pth",
+    "sha256": "931f3c316158b2abf22a311e50fe14713dfd09cc685dc0956d11530dd4c15932"
+  },
+  "dataset": {
+    "name": "PeMSD8",
+    "sha256": "e1d03ce74e9fb79149e6e7c37c680214822c4a285baa2f42278cacabcd25c075"
+  },
+  "samples": [
+    0,
+    1,
+    2
+  ],
+  "requests": [
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "0",
+      "target": "1",
+      "label": "0 -> 1"
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "1",
+      "target": "0",
+      "label": "1 -> 0"
+    },
+    {
+      "sampleId": "0",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "2",
+      "target": "3",
+      "label": "2 -> 3"
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "0",
+      "target": "1",
+      "label": "0 -> 1"
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "1",
+      "target": "0",
+      "label": "1 -> 0"
+    },
+    {
+      "sampleId": "1",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "2",
+      "target": "3",
+      "label": "2 -> 3"
+    },
+    {
+      "sampleId": "2",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "0",
+      "target": "1",
+      "label": "0 -> 1"
+    },
+    {
+      "sampleId": "2",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "1",
+      "target": "0",
+      "label": "1 -> 0"
+    },
+    {
+      "sampleId": "2",
+      "protocolId": "single",
+      "contextIds": [
+        "encoder:0"
+      ],
+      "source": "2",
+      "target": "3",
+      "label": "2 -> 3"
+    }
+  ]
+}

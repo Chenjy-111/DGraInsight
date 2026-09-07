@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "reference": "MTGNN maintained plugin evidence",
+  "samples": 3,
+  "records": 84,
+  "sameSampleContextRelationScope": true,
+  "sameMAEMSE": true,
+  "sameRawArrays": true,
+  "note": "Result import/export may derive profiles but preserves original numerical records. Both routes use the same Generic Web validator and metric functions."
+}

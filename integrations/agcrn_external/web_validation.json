@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "model": "AGCRN",
+  "genericWorkspace": "EvaluationWorkspace",
+  "samples": 3,
+  "records": 9,
+  "metricRowsChecked": 3,
+  "outputSelector": true,
+  "contextSelector": true,
+  "relationTable": true,
+  "forecastStepProfile": true,
+  "crossSampleProfile": true,
+  "provenance": true,
+  "pageErrors": []
+}

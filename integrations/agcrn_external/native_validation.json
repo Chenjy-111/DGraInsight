@@ -1,0 +1,76 @@
+{
+  "status": "passed",
+  "model": "AGCRN",
+  "sourceRevision": "7fbbf2aeb099242098a3cf482b55cd45d7295c28",
+  "pristineForwardMatched": true,
+  "samples": 3,
+  "records": 9,
+  "consumedEinsumSupportChecks": 54,
+  "maxPredictionDifference": 0.0,
+  "method": "Load pristine AVWGCN.forward from pinned source revision; compare patched no-hook baseline. Independently mask native support[target,source], inspect original knm,bmc->bknc operands (including identity term) at every gate/update/timestep, compare real original-forward predictions.",
+  "results": [
+    {
+      "sampleId": "0",
+      "source": "0",
+      "target": "1",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.1058349609375
+    },
+    {
+      "sampleId": "0",
+      "source": "1",
+      "target": "0",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.287200927734375
+    },
+    {
+      "sampleId": "0",
+      "source": "2",
+      "target": "3",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.0037841796875
+    },
+    {
+      "sampleId": "1",
+      "source": "0",
+      "target": "1",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.1126708984375
+    },
+    {
+      "sampleId": "1",
+      "source": "1",
+      "target": "0",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.268768310546875
+    },
+    {
+      "sampleId": "1",
+      "source": "2",
+      "target": "3",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.0072021484375
+    },
+    {
+      "sampleId": "2",
+      "source": "0",
+      "target": "1",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.15838623046875
+    },
+    {
+      "sampleId": "2",
+      "source": "1",
+      "target": "0",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.245574951171875
+    },
+    {
+      "sampleId": "2",
+      "source": "2",
+      "target": "3",
+      "maxPredictionDifference": 0.0,
+      "maxChangeFromBaseline": 0.01116943359375
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "version": "evaluation.validation.v1",
+  "status": "PASS",
+  "checks": [
+    {
+      "id": "V1",
+      "label": "Adapter load",
+      "status": "PASS",
+      "detail": "External adapter or maintained plugin loaded; model metadata available."
+    },
+    {
+      "id": "V2",
+      "label": "Sample load",
+      "status": "PASS",
+      "detail": "Explicit sample 0; finite truth [3,170]."
+    },
+    {
+      "id": "V3",
+      "label": "Baseline forward",
+      "status": "PASS",
+      "detail": "Original forward returned finite [3,170] prediction."
+    },
+    {
+      "id": "V4",
+      "label": "Relation extraction",
+      "status": "PASS",
+      "detail": "1 contexts, 28730 eligible relations; selected identity validated."
+    },
+    {
+      "id": "V5",
+      "label": "Identity intervention",
+      "status": "PASS",
+      "detail": "All contexts matched; max difference=0, atol=1e-6, rtol=1e-5. Does not by itself establish correct removal."
+    },
+    {
+      "id": "V6",
+      "label": "Edge intervention",
+      "status": "PASS",
+      "detail": "Real requested intervention returned finite [3,170] forecast; a zero response is allowed."
+    }
+  ],
+  "graphStateVerification": {
+    "status": "passed",
+    "detail": "Inspected 6 native support hook invocations (gate and update at three timesteps); removal entry and row normalization checked for remove. Independent einsum-operand verification is a separate report."
+  },
+  "sampleId": "0",
+  "request": {
+    "sampleId": "0",
+    "protocolId": "single",
+    "contextIds": [
+      "encoder:0"
+    ],
+    "source": "0",
+    "target": "1",
+    "label": "0 -> 1"
+  },
+  "baselineMetrics": {
+    "mae": 20.36739358340993,
+    "mse": 849.7581229191588
+  },
+  "interventionMetrics": {
+    "mae": 20.36798406862745,
+    "mse": 849.7658832527318
+  }
+}
