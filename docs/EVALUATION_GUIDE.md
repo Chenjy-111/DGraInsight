@@ -1,9 +1,7 @@
 # Offline Edge-Removal Evaluation
 
-The current goal is to compare forecast performance before and after a declared graph
-relation removal, using MAE/MSE, forecasts and descriptive sample comparisons. The new
-workflow does not compute matched controls, D, p/q values or formal support. Legacy
-`audit`, `wizard` and Session v2 files remain historical tools, not the performance API.
+Evaluation compares forecast performance before and after a declared graph
+relation removal, using MAE/MSE, forecasts and descriptive sample comparisons. The workflow reports descriptive forecast changes. See [Session v2 compatibility](AUDIT_SESSION_V2.md) for the retained audit interfaces.
 
 ## 1. Import an existing experiment
 

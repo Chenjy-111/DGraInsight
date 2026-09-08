@@ -1,15 +1,15 @@
-# Portable Audit Session v2
+# Session v2 compatibility
 
-Session v2 is the only current portable session contract. Its JSON Schema is `schemas/dgrainsight_audit_session_v2.schema.json`.
+The current portable evaluation format is `evaluation.v1`, described in the [Evaluation guide](EVALUATION_GUIDE.md). Built-in performance summaries use `performance.v1`.
 
-The document contains immutable model/dataset/checkpoint identity, the frozen audit plan, samples and native graph contexts, descriptive case evidence, candidate relations, hypothesis families, cross-sample/test inference, dependence audit, validation reports, provenance, and limitations.
+The browser also accepts validated Session v2 files for graph inspection. These files do not provide current performance results: the interface reports those results as unavailable. Retained `dgraudit/v2/`, audit CLI commands, frozen inputs and fixtures allow recorded files to be validated and reproduced. Their version names do not indicate unused code.
 
-Case evidence stores the focal response, every unique eligible control identity/response, and `D`. Its `formal_inference` is always `not_evaluated` with null p/q values. Formal raw p-values and BH-adjusted q-values exist only in candidate-level `cross_sample_evidence` and are linked to exactly one frozen family.
-
-Validate a file with:
+The [Session v2 schema](../schemas/dgrainsight_audit_session_v2.schema.json) records model identity, contexts, case evidence, candidate families and provenance. Case-level formal inference must remain unavailable; any stored candidate-level inference belongs to this separate protocol. It must not be relabeled as current evaluation evidence.
 
 ```bash
-python -m dgraudit validate-session dgrainsight_session_v2.json
+python -m dgraudit validate-session path/to/session.json
+npm run test:web-session-v2
+npm run test:web-graph-regression
 ```
 
-The Python semantic validator, JSON Schema validator, and TypeScript browser validator all fail on malformed tensors, invalid references, duplicated controls, imputed inactive units, invalid p/q values, or case-level formal inference.
+The retained audit launchers and `configs/local_audit_*.json` / `configs/formal_audit_v2_*.json` are compatibility inputs. New evaluation work should use `configs/evaluation_*.json`. The schema and regression tests are the reference for compatibility behavior.

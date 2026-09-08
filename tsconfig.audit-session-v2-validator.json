@@ -10,7 +10,6 @@
   },
   "include": [
     "src/data/auditSessionV2.ts",
-    "src/components/evidence/evidencePresentationLogic.ts",
     "src/components/evidence/forecastPerformanceLogic.ts"
   ]
 }

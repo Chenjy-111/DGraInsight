@@ -1,5 +1,7 @@
 # External Model Adapter Validation
 
+> This is the AGCRN integration study recorded at commit `82b3caa`. Its core-freeze hashes describe that snapshot, not later interface or documentation cleanup. Original numerical evidence and limitations are retained.
+
 ## 实验结论
 
 AGCRN 通过外部六方法 Thin Adapter 接入。真实 PeMSD8 测试样本 0、1、2 上，
@@ -121,11 +123,11 @@ schemas 和 package.json；changedCoreFiles = []。该范围也覆盖 loader 与
 没有通过缩小 Core 定义排除新分支。
 
 ```powershell
-git diff 7c25aef HEAD --name-only
-git diff 7c25aef HEAD --name-only -- dgraudit dgrainsight src schemas package.json
+git diff 7c25aef 82b3caa --name-only
+git diff 7c25aef 82b3caa --name-only -- dgraudit dgrainsight src schemas package.json
 ```
 
-第二条应为空。外部新增部分只有 integration、配置、证据、验证测试和实施报告。
+第二条在上述固定实验提交之间应为空；不要将实验终点替换为当前 HEAD。外部新增部分只有 integration、配置、证据、验证测试和实施报告。
 
 ## 限制与已知失败
 

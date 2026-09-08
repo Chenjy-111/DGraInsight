@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseCurrentAuditSession, SESSION_V1_UNSUPPORTED, validateAuditSessionV2 } from '../.tmp/audit-session-v2-validator/src/data/auditSessionV2.js';
-import { formalAvailabilityLabel } from '../.tmp/audit-session-v2-validator/src/components/evidence/evidencePresentationLogic.js';
 import { combinedPerformance, changeThreshold, errorDelta, performanceDirection, performancePolicy, summarizePerformance } from '../.tmp/audit-session-v2-validator/src/components/evidence/forecastPerformanceLogic.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,16 +35,6 @@ assert.equal(summarizePerformance([null], 'mae').meanDelta, null);
 assert.equal(summarizePerformance([accuracyCase({ error_delta_mae: -1 })], 'mae').reductionPercent, null);
 assert.ok(summarizePerformance(dgra.case_evidence, 'mae').improved > 0);
 assert.ok(summarizePerformance(dgra.case_evidence, 'mae').degraded > 0);
-
-const formalBundle = (status, supported) => ({ evidence: { primary_inference: { status }, multiplicity: { supported } } });
-const completeSupported = formalBundle('complete', true);
-const completeNotSupported = formalBundle('complete', false);
-const unavailableFormal = formalBundle('unavailable', null);
-assert.equal(formalAvailabilityLabel(completeSupported, completeNotSupported), 'Formal inference · 2 / 2 displayed scopes available');
-assert.equal(formalAvailabilityLabel(completeSupported, unavailableFormal), 'Formal inference · 1 / 2 displayed scopes available');
-assert.equal(formalAvailabilityLabel(unavailableFormal, unavailableFormal), 'Formal inference unavailable');
-assert.equal(formalAvailabilityLabel(null, null), 'Not audited');
-assert.equal(formalAvailabilityLabel(completeSupported, completeNotSupported, true), 'Formal inference available');
 
 assert.equal(validateAuditSessionV2(dgra).ok, true);
 assert.equal(validateAuditSessionV2(msgnet).ok, true);
@@ -202,7 +191,7 @@ assert.match(evidenceUi, /type:\s*'line'/);
 assert.match(evidenceUi, /<details/);
 assert.doesNotMatch(completeUi, /EvidenceDetail|loadBuiltInSessionV2|ScopeEvidenceMap|MethodSensitivity|Supported|Not supported|Single-window Detail|All-window Detail/);
 assert.doesNotMatch(completeUi, /computeBH|calculatePValue|deriveSupported|aggregateCasesToFormalEvidence/);
-const production = ['src/App.tsx','src/components/SessionV2Evidence.tsx','src/components/evidence/EvidencePresentation.tsx','src/components/MsgnetWorkspace.tsx','src/components/ImportedSessionV2Workspace.tsx','src/data/auditSessionV2View.ts'];
+const production = ['src/App.tsx','src/components/SessionV2Evidence.tsx','src/components/MsgnetWorkspace.tsx','src/components/ImportedSessionV2Workspace.tsx'];
 const legacy = /empirical_p|bh_adjusted_p|local_bh_supported_count|broader_context_bh_supported_count|global_bh_supported_count|bootstrap_repetitions|statistically significant|case significance/;
 for (const file of production) assert.doesNotMatch(source(file), legacy, `${file} contains legacy production evidence usage`);
 
