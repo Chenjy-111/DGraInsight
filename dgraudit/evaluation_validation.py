@@ -11,8 +11,8 @@ def prediction(outcome):
     return array(outcome["prediction"] if isinstance(outcome, dict) and "prediction" in outcome else outcome)
 
 
-def check_request(metadata, sample, request):
-    require(request["sampleId"] == sample["id"], "Requested sample is not the loaded sample")
+def check_request_capabilities(metadata, request):
+    """Scope checks for requests whose structural identities have been validated."""
     protocols = {p["id"] for p in metadata["protocols"]}
     require(request["protocolId"] in protocols, "NOT_SUPPORTED: requested intervention scope")
     caps = metadata.get("capabilities", {})
@@ -21,6 +21,11 @@ def check_request(metadata, sample, request):
     if request["protocolId"] == "single":
         require(len(request.get("contextIds", [])) == 1, "Single-context intervention requires exactly one context")
         require(caps.get("supports_single_context", True), "NOT_SUPPORTED: single-context intervention")
+
+
+def check_request(metadata, sample, request):
+    require(request["sampleId"] == sample["id"], "Requested sample is not the loaded sample")
+    check_request_capabilities(metadata, request)
     probe = {**metadata, "version": "evaluation.v1", "runStatus": "partial", "provenance": {},
         "validation": {k: {"status": "not_checked", "detail": "Preflight in progress"} for k in ("identity", "nativeIntervention")},
         "samples": [sample], "records": [{**request, "id": "preflight", "metrics": {"mae": 0, "mse": 0}}]}

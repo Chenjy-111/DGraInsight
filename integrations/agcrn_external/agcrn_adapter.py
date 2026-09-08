@@ -15,6 +15,20 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def source_revision(root):
+    """Git is optional; never attribute a containing repository's HEAD to an export."""
+    root = Path(root).resolve()
+    if not (root / ".git").exists():
+        return None
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(root), "rev-parse", "--verify", "HEAD"],
+            text=True, stderr=subprocess.DEVNULL, timeout=5,
+        ).strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 class AGCRNAdapter(ThinAdapter):
     capabilities = AdapterCapabilities(node_semantics="observed")
 
@@ -44,7 +58,7 @@ class AGCRNAdapter(ThinAdapter):
         self.test = test.dataset
         self.modules = [self.model.encoder.dcrnn_cells[0].gate, self.model.encoder.dcrnn_cells[0].update]
         self.graph = None
-        revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+        revision = source_revision(root)
         return {"model": "AGCRN", "dataset": "PeMSD8 test split", "horizon": 3,
             "nodes": [{"id": str(i), "label": f"Sensor {i}"} for i in range(170)],
             "outputs": [f"Sensor {i} flow" for i in range(170)],
@@ -53,11 +67,15 @@ class AGCRNAdapter(ThinAdapter):
                 "description": "Canonical source->target maps to native support[target,source] in knm,bmc->bknc. Zero the already-softmax-normalized entry and renormalize its row. Apply to both gate and update AVWGCN at all three encoder timesteps. Native Chebyshev identity term remains unchanged; higher orders would be rebuilt by original code (this checkpoint uses order 2). Other learned diagonal support entries remain but the affected row is rescaled. No all-context or isolated-gate intervention."}],
             "measurement": {"space": "original traffic flow scale after native scaler.inverse_transform", "units": "flow per 5-minute interval; MSE uses squared units", "aggregation": "mean_all_steps_outputs"},
             "provenance": {"sourceUrl": "https://github.com/LeiBAI/AGCRN", "sourceRevision": revision,
+                "sourceRevisionStatus": "available" if revision else "unavailable",
                 "sourceHashes": {str(p.relative_to(root)): sha(p) for p in root.rglob("*.py") if "experiments" not in p.parts},
                 "checkpointSha256": sha(checkpoint), "datasetSha256": sha(dataset),
                 "datasetUrl": "https://raw.githubusercontent.com/Davidham3/ASTGCN-2019-mxnet/master/data/PEMS08/pems08.npz",
                 "python": platform.python_version(), "torch": torch.__version__, "device": "cpu", "parameters": vars(args),
-                "checkpointTraining": "Native Run.py, 1 epoch, seed 10, small configuration; integration study, not paper benchmark reproduction",
+                "localResources": config.get("localResources", {}),
+                "checkpointTraining": ("Native Run.py, 1 epoch, seed 10, small configuration; integration study, not paper benchmark reproduction"
+                    if sha(checkpoint) == "931f3c316158b2abf22a311e50fe14713dfd09cc685dc0956d11530dd4c15932"
+                    else "User-provided checkpoint; training history unavailable"),
                 "preprocessingLimitation": "Original loader fits StandardScaler on the entire dataset before chronological 60/20/20 splitting; retained for native consistency. Do not treat this experiment as leakage-free benchmark evaluation."}}
 
     def load_sample(self, sample_id):

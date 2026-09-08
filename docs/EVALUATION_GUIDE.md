@@ -3,7 +3,9 @@
 The current goal is to compare forecast performance before and after a declared graph
 relation removal, using MAE/MSE, forecasts and descriptive sample comparisons. The new
 workflow does not compute matched controls, D, p/q values or formal support. Legacy
-`audit`, `wizard` and Session v2 files remain historical tools, not the performance API.
+`audit` and `wizard` are no longer exposed by the main CLI. Session v2 modules are retained only for historical reproduction.
+
+For the recommended Windows workflow, [download the ready-to-run application](https://github.com/Chenjy-111/DGraInsight/releases/latest/download/DGraInsight-Offline-Evaluator.zip) and follow the [user guide](../offline_app/README.md). The following sections describe developer APIs.
 
 ## 1. Import an existing experiment
 

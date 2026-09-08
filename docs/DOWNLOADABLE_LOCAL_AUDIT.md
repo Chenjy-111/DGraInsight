@@ -1,9 +1,6 @@
-> Historical Session v2 audit documentation. For the current MAE/MSE performance workflow, existing-result import, function backends and model plugins, use the [Evaluation guide](EVALUATION_GUIDE.md). Legacy controls, D and formal inference are not the current system objective.
+# Retired workflow
 
-# Offline local audit workflow
+The Audit / Session v2 user workflow has been retired. Its launcher and wizard have been removed.
+Use [DGraInsight Offline Evaluator](../offline_app/README.md) to evaluate local models and export the current website JSON.
 
-Keep upstream model source, checkpoint, and dataset files outside the DGraInsight repository. Edit a Config v2 template with those local paths, then run `validate`, `edges` or `wizard`, and `validate-session`.
-
-On Windows, `Start-DGraInsight-Audit.cmd` starts the guided current workflow. The default output is `dgrainsight_session_v2.json`. The browser import panel accepts that Session v2 file and does not upload it or rerun the model.
-
-Formal examples use repository-owned frozen operands. Quick Inspection uses the user's local assets and always reports formal inference as unavailable for a single inspected case.
+[Download the current application](https://github.com/Chenjy-111/DGraInsight/releases/latest/download/DGraInsight-Offline-Evaluator.zip)

@@ -9,6 +9,8 @@ import copy
 import hashlib
 import json
 import math
+import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -104,12 +106,15 @@ def validate_results(data):
             computed = metrics(pred, truth)
             require(all(math.isclose(computed[k], supplied[k], rel_tol=1e-8, abs_tol=1e-10) for k in computed), f"{name}: stored metrics do not match raw arrays")
 
+    context_edges = {}
+    sample_context_ids = {}
     for s in samples.values():
         check_metrics(s.get("baselineMetrics"), "baselineMetrics")
         if s.get("truth") is not None:
             matrix(s["truth"], h, n, "truth")
         check_pair(s.get("baselinePrediction"), s.get("truth"), s["baselineMetrics"], "baselinePrediction")
         _unique(s.get("contexts"), "contexts")
+        sample_context_ids[s["id"]] = {c["id"] for c in s["contexts"]}
         for c in s["contexts"]:
             require(_text(c.get("type")) and _text(c.get("label")), "Context type and label are required")
             require(isinstance(c.get("edges"), list), "Context edges must be an array")
@@ -119,18 +124,19 @@ def validate_results(data):
                 key = (e["source"], e["target"])
                 require(key not in seen, "Duplicate directed edge")
                 seen.add(key)
+            context_edges[(s["id"], c["id"])] = seen
     _unique(data.get("records"), "records")
     requests = set()
     for r in data["records"]:
         require(r.get("sampleId") in samples and r.get("protocolId") in protocol_ids and _text(r.get("label")), "Record sample, protocol and label are required")
         s = samples[r["sampleId"]]
         context_ids = r.get("contextIds")
-        require(isinstance(context_ids, list) and all(_text(c) for c in context_ids) and len(set(context_ids)) == len(context_ids) and set(context_ids) <= {c["id"] for c in s["contexts"]}, "Record contextIds must refer to unique sample contexts")
+        require(isinstance(context_ids, list) and all(_text(c) for c in context_ids) and len(set(context_ids)) == len(context_ids) and set(context_ids) <= sample_context_ids[s["id"]], "Record contextIds must refer to unique sample contexts")
         has_edge = "source" in r or "target" in r
         if has_edge:
             require(r.get("source") in node_ids and r.get("target") in node_ids, "Record edge must refer to declared graph nodes")
             if context_ids:
-                require(any(c["id"] in context_ids and any(e["source"] == r["source"] and e["target"] == r["target"] for e in c["edges"]) for c in s["contexts"]), "Removed edge absent from selected contexts")
+                require(any((r['source'], r['target']) in context_edges[(s['id'], cid)] for cid in context_ids), "Removed edge absent from selected contexts")
         key = (r["sampleId"], r["protocolId"], tuple(sorted(context_ids)), r.get("source"), r.get("target"), "" if has_edge else r["label"])
         require(key not in requests, "Duplicate intervention request")
         requests.add(key)
@@ -186,12 +192,41 @@ def prepare_results(data):
 
 def write_results(data, path):
     result = prepare_results(data)
+    _write_snapshot(result, path)
+    return result
+
+
+def _write_snapshot(result, path):
+    """Stream an already prepared result atomically, without copying its arrays."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_suffix(destination.suffix + ".tmp")
-    temporary.write_text(json.dumps(result, ensure_ascii=False, allow_nan=False, indent=2), encoding="utf-8")
+    with temporary.open('w', encoding='utf-8') as stream:
+        json.dump(result, stream, ensure_ascii=False, allow_nan=False, separators=(',', ':'))
+        stream.flush()
+        os.fsync(stream.fileno())
     temporary.replace(destination)
-    return result
+
+
+def _recover_journal(path, run_key, records):
+    """Recover complete durable lines; never accept a corrupt committed line."""
+    by_id = {r['id']: r for r in records}
+    with path.open('rb') as stream:
+        header = json.loads(stream.readline())
+        require(header == {'version': 'evaluation.journal.v1', 'runFingerprint': run_key}, 'Resume journal identity mismatch')
+        valid_bytes = stream.tell()
+        for line in stream:
+            if not line.endswith(b'\n'):
+                break  # A process may have died during the last append.
+            record = json.loads(line)
+            require(isinstance(record, dict) and _text(record.get('id')), 'Invalid journal record')
+            prior = by_id.get(record['id'])
+            require(prior is None or prior == record, 'Conflicting duplicate journal record')
+            if prior is None:
+                records.append(record)
+                by_id[record['id']] = record
+            valid_bytes = stream.tell()
+    return valid_bytes
 
 
 class FunctionBackend:
@@ -224,7 +259,7 @@ def run_evaluation(backend, sample_ids, output, *, requests=None, resume=False, 
     Explicit requests carry sampleId, protocolId, contextIds, source/target and label.
     Without requests, enumerate non-self edges for the backend's 'single' protocol.
     """
-    from .evaluation_validation import prediction, check_request
+    from .evaluation_validation import prediction, check_request_capabilities
     require(callable(backend.identity), "NOT_SUPPORTED: execution requires identity intervention")
     require(bool(sample_ids) and len({str(s) for s in sample_ids}) == len(sample_ids), "Select unique samples")
     destination = Path(output).resolve()
@@ -238,6 +273,9 @@ def run_evaluation(backend, sample_ids, output, *, requests=None, resume=False, 
         "nativeIntervention": {"status": "not_checked", "detail": "The runner does not independently inspect native message passing. Review the backend's implementation and native validation reports."},
     }
     runtime = {}
+    journal = destination.with_suffix(destination.suffix + '.journal.jsonl')
+    journal_stream = None
+    persistence_ready = False
     try:
         for sample_id in sample_ids:
             progress(f"Baseline and contexts: {sample_id}")
@@ -269,21 +307,42 @@ def run_evaluation(backend, sample_ids, output, *, requests=None, resume=False, 
             plan = copy.deepcopy(requests)
         for r in plan:
             r["id"] = fingerprint({k: v for k, v in r.items() if k != "id"})[:24]
-        # Validate every requested identity and capability before the first removal.
+        # Validate the graph once and index its edges, not once per requested removal.
+        progress(f"Validating plan: {len(plan)} edge removals")
         probe = {**result, "records": [{**r, "metrics": {"mae": 0, "mse": 0}} for r in plan]}
         validate_results(probe)
         require(bool(plan), "UNAVAILABLE: no selected valid relations")
         for request in plan:
-            check_request(backend.metadata, next(s for s in result["samples"] if s["id"] == request["sampleId"]), request)
+            check_request_capabilities(backend.metadata, request)
+        progress("Plan validated. Preparing the initial result file...")
         run_key = fingerprint({"metadata": backend.metadata, "samples": result["samples"], "requests": plan})
         result["provenance"]["runFingerprint"] = run_key
         if previous:
             require(previous["provenance"].get("runFingerprint") == run_key, "Resume inputs, backend identity or requests changed; choose a new output")
-            planned = {r["id"]: r for r in plan}
-            require(all(r["id"] in planned and all(r.get(k) == v for k, v in planned[r["id"]].items()) for r in previous["records"]), "Resume records differ from the declared requests")
             result["records"] = previous["records"]
+        valid_bytes = None
+        if resume and journal.exists():
+            valid_bytes = _recover_journal(journal, run_key, result['records'])
+        else:
+            require(not journal.exists(), 'Journal already exists; use --resume or a new output')
+        planned = {r['id']: r for r in plan}
+        require(all(r['id'] in planned and all(r.get(k) == v for k, v in planned[r['id']].items()) for r in result['records']), 'Resume records differ from the declared requests')
+        validate_results(result)
         done = {r["id"] for r in result["records"]}
-        write_results(result, destination)
+        _write_snapshot(result, destination)
+        if valid_bytes is not None:
+            with journal.open('r+b') as stream:
+                stream.truncate(valid_bytes)
+        journal_stream = journal.open('a', encoding='utf-8', newline='\n')
+        if valid_bytes is None:
+            journal_stream.write(json.dumps({'version': 'evaluation.journal.v1', 'runFingerprint': run_key}) + '\n')
+            journal_stream.flush()
+            os.fsync(journal_stream.fileno())
+        persistence_ready = True
+        last_snapshot = time.monotonic()
+        since_snapshot = 0
+        samples_by_id = {s['id']: s for s in result['samples']}
+        progress(f'Incremental saving enabled. Recovered {len(done)} completed removals.')
         for i, request in enumerate(plan):
             if request["id"] in done:
                 continue
@@ -291,15 +350,35 @@ def run_evaluation(backend, sample_ids, output, *, requests=None, resume=False, 
             outcome = backend.intervene(runtime[request["sampleId"]], request)
             pred = prediction(outcome)
             matrix(pred, result["horizon"], len(result["outputs"]), "intervention prediction")
-            truth = next(s["truth"] for s in result["samples"] if s["id"] == request["sampleId"])
+            sample = samples_by_id[request['sampleId']]
+            truth = sample['truth']
             record = {**request, "prediction": pred, "metrics": metrics(pred, truth)}
+            record['errorChange'] = {k: record['metrics'][k] - sample['baselineMetrics'][k] for k in ('mae', 'mse')}
+            record['forecastStepErrorChange'] = error_profile(pred, sample['baselinePrediction'], truth)
             if isinstance(outcome, dict) and "graphStateVerification" in outcome:
                 state = outcome["graphStateVerification"]
                 require(state.get("status") in ("passed", "unavailable") and _text(state.get("detail")), "Native graph-state check failed or invalid")
                 record["graphStateVerification"] = state
+            journal_stream.write(json.dumps(record, ensure_ascii=False, allow_nan=False, separators=(',', ':')) + '\n')
+            journal_stream.flush()
+            os.fsync(journal_stream.fileno())
             result["records"].append(record)
-            write_results(result, destination)
+            since_snapshot += 1
+            if since_snapshot >= 1000 or time.monotonic() - last_snapshot >= 60:
+                progress(f'Saving result snapshot: {len(result["records"])}/{len(plan)} completed')
+                _write_snapshot(result, destination)
+                since_snapshot = 0
+                last_snapshot = time.monotonic()
         result["runStatus"] = "complete"
-        return write_results(result, destination)
+        validate_results(result)
+        _write_snapshot(result, destination)
+        return result
+    except BaseException:
+        if persistence_ready:
+            result['runStatus'] = 'partial'
+            _write_snapshot(result, destination)
+        raise
     finally:
+        if journal_stream is not None:
+            journal_stream.close()
         backend.close()

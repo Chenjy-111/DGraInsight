@@ -64,7 +64,7 @@ def official_backend(plugin, config, base):
     # Framework dependencies are loaded only for actual model execution.
     import numpy as np
     import torch
-    from .validation import OFFICIAL_ADAPTER_REGISTRY
+    from .model_specs import OFFICIAL_ADAPTER_REGISTRY
     spec = OFFICIAL_ADAPTER_REGISTRY[plugin]
     if isinstance(spec, type):
         spec = spec()
@@ -105,7 +105,7 @@ def official_backend(plugin, config, base):
         "provenance": {"plugin": plugin, "pluginVersion": "1.0", "checkpointSha256": hashes["checkpoint"], "datasetSha256": hashes["dataset"], "sourceHashes": sources, "parameters": config["adapter_config"], "python": platform.python_version(), "torch": torch.__version__, "device": str(adapter.device), "compatibility": PLUGIN_INFO[plugin]["compatibility"]}}
     metadata["sourceMode"] = "plugin"
     metadata["capabilities"] = {"supports_single_context": True, "supports_all_contexts": spec.capabilities.supports_broader_context, "supports_batch": False, "directed": True, "node_semantics": "latent" if plugin == "msgnet" else "observed"}
-    metadata["provenance"]["implementationHashes"] = {name: sha256(Path(__file__).parent / name) for name in ("evaluation.py", "evaluation_plugins.py", "adapters.py", "validation.py")}
+    metadata["provenance"]["implementationHashes"] = {name: sha256(Path(__file__).parent / name) for name in ("evaluation.py", "evaluation_plugins.py", "adapters.py", "model_specs.py")}
 
     def load_sample(sid):
         batch = spec.prepare_batch(adapter.load_sample(config.get("split", "test"), int(sid)), config)

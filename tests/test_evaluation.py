@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from dgraudit.evaluation import prepare_results, run_evaluation, validate_results, write_results
 from dgraudit.examples.evaluation_functions_example import create_backend, forward, load_sample
@@ -120,6 +121,77 @@ class EvaluationTests(unittest.TestCase):
         self.backend.intervene = lambda sample, request: self.backend.predict(sample)
         d = self.run_fixture()
         self.assertEqual(d["records"][0]["metrics"], {"mae": 0, "mse": 0})
+
+    def test_graph_edges_are_indexed_once_for_record_validation(self):
+        result = self.run_fixture()
+        class CountedEdges(list):
+            def __iter__(self):
+                self.iterations += 1
+                return super().__iter__()
+        counted = []
+        for sample in result['samples']:
+            for context in sample['contexts']:
+                edges = CountedEdges(context['edges'])
+                edges.iterations = 0
+                context['edges'] = edges
+                counted.append(edges)
+        validate_results(result)
+        self.assertTrue(all(edges.iterations == 1 for edges in counted))
+
+    def test_bulk_plan_checks_capabilities_before_any_removal(self):
+        self.backend.metadata['capabilities'] = {
+            'supports_single_context': False, 'supports_all_contexts': False,
+            'supports_batch': False, 'directed': True, 'node_semantics': 'latent'}
+        self.backend.intervene = lambda *_: self.fail('Unsupported removal executed')
+        with self.assertRaisesRegex(ValueError, 'NOT_SUPPORTED'):
+            self.run_fixture()
+
+    def test_runner_does_not_use_copying_export_writer(self):
+        with patch('dgraudit.evaluation.prepare_results', side_effect=AssertionError('Full export copy called')):
+            result = self.run_fixture()
+        self.assertEqual(result['runStatus'], 'complete')
+        self.assertIn('forecastStepErrorChange', result['records'][0])
+
+    def test_resume_recovers_journal_ahead_of_snapshot_and_torn_tail(self):
+        original = self.backend.intervene
+        calls = []
+        def interrupted(batch, request):
+            calls.append(request['id'])
+            if len(calls) == 4:
+                raise RuntimeError('test interruption')
+            return original(batch, request)
+        self.backend.intervene = interrupted
+        with self.assertRaises(RuntimeError):
+            self.run_fixture()
+        partial = json.loads(self.path.read_text(encoding='utf-8'))
+        retained = copy.deepcopy(partial['records'])
+        partial['records'] = []  # Simulate crash before a new periodic snapshot.
+        self.path.write_text(json.dumps(partial), encoding='utf-8')
+        journal = self.path.with_suffix('.json.journal.jsonl')
+        with journal.open('ab') as stream:
+            stream.write(b'{"id":"unfinished')
+        calls.clear()
+        def resumed(batch, request):
+            calls.append(request['id'])
+            return original(batch, request)
+        self.backend.intervene = resumed
+        result = run_evaluation(self.backend, [0, 1], self.path, resume=True, progress=lambda _: None)
+        self.assertEqual(len(calls), 5)
+        self.assertEqual(result['records'][:3], retained)
+        self.assertEqual(len(result['records']), 8)
+
+    def test_resume_rejects_modified_journal(self):
+        self.run_fixture()
+        journal = self.path.with_suffix('.json.journal.jsonl')
+        lines = journal.read_text(encoding='utf-8').splitlines()
+        changed = json.loads(lines[1])
+        changed['metrics']['mae'] += 1
+        lines[1] = json.dumps(changed)
+        journal.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+        original_bytes = self.path.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'Conflicting duplicate'):
+            run_evaluation(self.backend, [0, 1], self.path, resume=True, progress=lambda _: None)
+        self.assertEqual(self.path.read_bytes(), original_bytes)
 
 
 if __name__ == "__main__":

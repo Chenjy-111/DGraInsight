@@ -4,6 +4,10 @@ This is the previously unsupported model integration study. MTGNN remains an alr
 integrated reference plugin. AGCRN uses the same frozen Thin Adapter, runner, evaluator,
 schema and generic Web without model-specific core changes.
 
+## Use your local resources
+
+Download the separate [AGCRN-Adapter.zip](https://github.com/Chenjy-111/DGraInsight/releases/latest/download/AGCRN-Adapter.zip) and follow the [local guide](LOCAL_ADAPTER_GUIDE.md). Select **Connect another model** in the evaluator. The pinned download/training commands below are only for reproducing the original integration study.
+
 ## Reproduce
 
 Use Python >=3.10 with PyTorch and NumPy (actual versions/hashes are in evidence provenance).
@@ -41,6 +45,14 @@ the study JSON, never its predictions/metrics. The default generic run reports n
 state checks separately from this stronger independent comparison.
 
 ## Supported semantics
+
+Local exported source folders (including ZIP downloads) do not need `.git` or a
+provenance declaration to load. The adapter records `sourceRevision: null` and
+`sourceRevisionStatus: "unavailable"` when Git metadata cannot be read, while still
+hashing the actual Python source files, dataset and checkpoint. A containing
+repository's revision is never used for an exported model directory. Native
+intervention hooks and matching model resources remain required. `prepare.py` is
+the separate pinned-download workflow and still requires Git.
 
 Single context `encoder:0` includes gate and update convolutions at every encoder timestep.
 Canonical source->target is native `[target,source]`. Zero that softmax-normalized support
