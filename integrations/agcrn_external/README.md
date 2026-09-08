@@ -67,5 +67,7 @@ preserved and disclosed for original-code consistency. Treat the run as an integ
 study, not an independent leakage-free forecasting benchmark. Learned edges are model
 computation relations, not road connections or real-world causal findings.
 
-See `docs/EXTERNAL_MODEL_ADAPTER_VALIDATION.md` for numerical results, limitations and
+See [the integration validation study](../../docs/EXTERNAL_MODEL_ADAPTER_VALIDATION.md) for numerical results, limitations and
 `BEFORE_EXTERNAL_MODEL` core-zero-change evidence.
+
+The core-freeze report describes commit `82b3caa` against `7c25aef`; its file paths and hashes are historical evidence, not a requirement that later cleanups retain unused files.

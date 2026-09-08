@@ -6,7 +6,7 @@ Evaluate how removing a learned graph relation changes a model's forecast. Run y
 
 **[Download DGraInsight Offline Evaluator for Windows](https://github.com/Chenjy-111/DGraInsight/releases/latest/download/DGraInsight-Offline-Evaluator.zip)**
 
-[Open the website](https://chenjy-111.github.io/DGraInsight/) · [All release assets](https://github.com/Chenjy-111/DGraInsight/releases/latest) · [User guide](offline_app/README.md)
+[Reviewer guide](docs/REVIEWER_GUIDE.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Open the website](https://chenjy-111.github.io/DGraInsight/) · [All release assets](https://github.com/Chenjy-111/DGraInsight/releases/latest) · [User guide](offline_app/README.md)
 
 1. Download the ZIP above and extract it to a writable folder.
 2. Double-click **Start-Evaluation.cmd**.
@@ -35,7 +35,7 @@ DGraFormer, MSGNet and MTGNN have maintained backends. Other models use **Connec
 | `integrations/` | External adapter implementations and reproducibility studies |
 | `scripts/build_offline.py` | Clean ZIP package builder |
 | `src/`, `public/` | Website and existing demo data |
-| `docs/` | Developer documentation and historical evidence references |
+| `docs/` | User, reviewer and developer documentation |
 | `tests/` | Validation and regression tests |
 
 The retired Audit wizard and root launchers have been removed. Historical Session v2 reproduction modules and evidence remain for existing demos; they are excluded from the user download. Release packages exclude local environments, personal paths, user runs, datasets and checkpoints.

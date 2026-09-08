@@ -9,8 +9,8 @@ function key(d: DatasetId, s: number, h: Horizon) {
 
 /**
  * Loads a precomputed sample artifact from public/data/samples/.
- * Each JSON file must conform to the SampleData schema and be exported
- * via scripts/export_demo_data.py from real DGraFormer inference runs.
+ * Each JSON file must conform to SampleData and retain its recorded provenance.
+ * See docs/REPRODUCIBILITY.md for data identities and verification commands.
  */
 export async function loadSample(dataset: DatasetId, sampleId: number, horizon: Horizon): Promise<SampleData> {
   const k = key(dataset, sampleId, horizon);
@@ -21,7 +21,7 @@ export async function loadSample(dataset: DatasetId, sampleId: number, horizon: 
   const res = await fetch(`${base}data/samples/${k}.json`);
   if (!res.ok) {
     throw new Error(
-      `Sample data not found: ${k}.json. Run scripts/export_demo_data.py to export real DGraFormer inference artifacts.`
+      `Sample data not found: ${k}.json. Restore the matching published sample asset; see the repository reproducibility guide.`
     );
   }
   const json = (await res.json()) as SampleData;
