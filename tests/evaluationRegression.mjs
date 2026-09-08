@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import ts from 'typescript';
 const source = fs.readFileSync('src/data/evaluation.ts', 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { validateEvaluation, metricChange, displayedMetrics } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
+const { validateEvaluation, metricChange, displayedMetrics, rankedRemovals } = await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'));
 const d = JSON.parse(fs.readFileSync('tests/fixtures/evaluation/functions.json'));
 assert.equal(validateEvaluation(d).ok, true);
 assert.equal(d.nodes.length, 4); assert.equal(d.outputs.length, 2); assert.equal(d.horizon, 3);
@@ -40,3 +40,17 @@ const contract = JSON.parse(fs.readFileSync('tests/fixtures/evaluation/contract.
 assert.equal(validateEvaluation(contract).ok, true);
 contract.records[0].forecastStepErrorChange[0].mae += 1;
 assert.equal(validateEvaluation(contract).ok, false);
+
+// Explicit test-only metrics exercise group priority independently of magnitude.
+const rankingSample = {...d.samples[0], baselineMetrics: {mae: 100, mse: 100}};
+const rankingRecords = [
+  ['unchanged', 100.01, 100], ['worse-large', 200, 101],
+  ['better-small', 99, 99], ['better-large', 90, 98], ['worse-small', 101, 200],
+].map(([id, mae, mse]) => ({...d.records[0], id, sampleId: rankingSample.id, metrics: {mae, mse}}));
+assert.deepEqual(rankedRemovals(rankingSample, rankingRecords, -1, 'mae').map(v => v.record.id),
+  ['better-large', 'better-small', 'worse-large', 'worse-small', 'unchanged']);
+assert.deepEqual(rankedRemovals(rankingSample, rankingRecords, -1, 'mse').map(v => v.record.id),
+  ['better-large', 'better-small', 'worse-small', 'worse-large', 'unchanged']);
+assert.equal(rankedRemovals(rankingSample, rankingRecords, -1, 'mae').at(-1).change.label, 'No noticeable change');
+assert.equal(rankedRemovals(aggregate.samples[0], aggregate.records, 0, 'mae')[0].change, null);
+console.log('Grouped removal ranking, metric switching, neutral threshold and unavailable output PASS');

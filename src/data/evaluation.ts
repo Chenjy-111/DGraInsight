@@ -118,3 +118,14 @@ export function displayedMetrics(sample: EvaluationSample, record: EvaluationRec
   }
   return { before: sample.baselineMetrics, after: record.metrics };
 }
+
+export function rankedRemovals(sample: EvaluationSample, records: EvaluationRecord[], output: number, metric: keyof MetricPair) {
+  const order: Record<string, number> = { Improved: 0, Degraded: 1, 'No noticeable change': 2 };
+  return records.filter(r => r.sampleId === sample.id).map(record => {
+    const values = displayedMetrics(sample, record, output);
+    const change = values ? metricChange(values.before[metric], values.after[metric]) : null;
+    return { record, values, change };
+  }).sort((a, b) => (order[a.change?.label ?? ''] ?? 3) - (order[b.change?.label ?? ''] ?? 3)
+    || Math.abs(b.change?.delta ?? 0) - Math.abs(a.change?.delta ?? 0)
+    || a.record.id.localeCompare(b.record.id));
+}
