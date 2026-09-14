@@ -17,6 +17,8 @@ Select a relation before reading its Summary. Samples, graph contexts, removal s
 
 The default **By forecast step** line chart averages output errors at each step of the selected sample. **Across test samples** averages all steps and outputs within each declared sample. Missing removals remain gaps. MAE and MSE are calculated separately; changing the view does not change stored predictions.
 
+The separate **Across-sample consistency** panel reports direction counts as percentages for MAE and MSE for the selected relation in every effective graph context, plus the all-context removal. The selected graph context is highlighted, while changing the relation updates the entire panel. Each available test sample is classified after its forecast steps and outputs are averaged, using that sample's baseline-relative display threshold. Missing removal records are excluded from the denominator, which is shown as `n`.
+
 Signed change is `after - before`: negative/green is improved and positive/red is degraded. Improvement percentage is `(before - after) / before`; a zero baseline has no percentage. The inclusive `0.001 * baseline` threshold labels small changes descriptively, without changing their values or establishing significance. Aggregate raw errors first, then classify the aggregate.
 
 ## Verification

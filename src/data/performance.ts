@@ -64,10 +64,18 @@ export function loadPerformance(model: string) {
 }
 export const mean = (v: number[]) => v.length && v.every(Number.isFinite) ? v.reduce((a, b) => a + b, 0) / v.length : NaN;
 export const percent = (b: number, a: number) => b > 0 && Number.isFinite(a) ? (b - a) / b * 100 : NaN;
+export type MetricDirection = 'improved' | 'degraded' | 'unchanged' | 'unavailable';
+export function metricDirection(before: number, after: number, floor = 0): MetricDirection {
+    if (!Number.isFinite(before) || !Number.isFinite(after) || before < 0 || floor < 0)
+        return 'unavailable';
+    const delta = after - before, threshold = Math.max(before * .001, floor);
+    const tolerance = Number.EPSILON * Math.max(1, Math.abs(before), Math.abs(after), threshold) * 8;
+    return delta < -threshold - tolerance ? 'improved' : delta > threshold + tolerance ? 'degraded' : 'unchanged';
+}
 export function conclusion(before: Errors | undefined, after: Errors | undefined, floor = 0) {
     if (!before || !after)
         return 'Results unavailable';
-    const states = (['mae', 'mse'] as const).map(m => { const b = mean(before[m]), a = mean(after[m]), t = Math.max(b * .001, floor); return !Number.isFinite(b) || !Number.isFinite(a) ? NaN : a - b < -t ? -1 : a - b > t ? 1 : 0; });
+    const states = (['mae', 'mse'] as const).map(m => ({ improved: -1, degraded: 1, unchanged: 0, unavailable: NaN })[metricDirection(mean(before[m]), mean(after[m]), floor)]);
     const [a, b] = states;
     if (!states.every(Number.isFinite))
         return 'Results unavailable';

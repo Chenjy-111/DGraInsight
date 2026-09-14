@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { conclusion, mean, percent, type Data, type Record } from '@/data/performance';
+import { conclusion, mean, metricDirection, percent, type Data, type Record } from '@/data/performance';
 const num = (v: number) => Number.isFinite(v) ? v.toPrecision(8) : 'N/A';
 const pct = (v: number) => Number.isFinite(v) ? `${v > 0 ? '+' : ''}${v.toPrecision(6)}%` : 'N/A';
 export function Unavailable({ text }: { text: string }) {
@@ -26,6 +26,18 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
   const relevant = sample?.contexts.filter(c => c.edges.some(e => e[0] === source && e[1] === target)) ?? [];
   if (!sample || !relevant.some(c => c.index === context)) return <Unavailable text="This relation is inactive in the selected context. Select an effective edge."/>;
   const timeSamples = data.samples.filter(s => data.evaluationSamples.includes(s.id));
+  const consistency = (rowScope: 'single' | 'all', rowMetric: 'mae' | 'mse', rowContext = context) => {
+    const counts = { improved: 0, degraded: 0, unchanged: 0 };
+    for (const s of timeSamples) {
+      const r = data.records.find(r => r.sample === s.id && r.source === source && r.target === target && r.scope === rowScope && r.context === (rowScope === 'all' ? -1 : rowContext));
+      if (!r) continue;
+      const direction = metricDirection(mean(s.baseline[rowMetric]), mean(r.after[rowMetric]), data.thresholdFloor);
+      if (direction !== 'unavailable') counts[direction]++;
+    }
+    const available = counts.improved + counts.degraded + counts.unchanged;
+    const share = (count: number) => available ? `${Number((count / available * 100).toFixed(1))}%` : 'N/A';
+    return { ...counts, available, text: `${share(counts.improved)} improved · ${share(counts.degraded)} degraded · ${share(counts.unchanged)} little change` };
+  };
   const points = axis === 'steps'
     ? sample.baseline[metric].map((before, i) => ({ x: i + 1, label: `Forecast step ${i + 1}`, before, after: chosen?.after[metric][i], current: false }))
     : timeSamples.map(s => {
@@ -37,6 +49,10 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
     return p ? `${p.label} · Baseline ${metric.toUpperCase()}: ${num(p.before)} · After removal: ${num(p.after ?? NaN)} · Change: ${num((p.after ?? NaN) - p.before)} · Improvement: ${pct(percent(p.before, p.after ?? NaN))}` : '';
   };
   const row = (r: Record | undefined, name: string) => <tr key={name}><td>{name}</td><td>{conclusion(sample.baseline, r?.after)}</td>{(['mae', 'mse'] as const).map(m => <Fragment key={m}><td>{num(mean(sample.baseline[m]))} → {num(r ? mean(r.after[m]) : NaN)}</td><td>{pct(percent(mean(sample.baseline[m]), r ? mean(r.after[m]) : NaN))}</td></Fragment>)}</tr>;
+  const consistencyScopes = [
+    ...relevant.map(c => ({ key: `single-${c.index}`, label: `${isMsg ? 'Scale' : 'Window'} ${isMsg ? c.index : c.index + 1}`, context: c.index, scope: 'single' as const, selected: c.index === context })),
+    { key: 'all', label: allLabel, context: -1, scope: 'all' as const, selected: false }
+  ];
   return <div className="performance-summary space-y-5" data-testid="performance-summary">
     <section className="card space-y-4 p-6">
       <div className="eyebrow">Summary · {data.model} · {relation}</div>
@@ -55,6 +71,17 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
       <div className="flex flex-wrap items-center gap-2"><span className="text-sm text-ink-500">Summary & chart scope:</span>{(['single', 'all'] as const).map(v => <button key={v} aria-pressed={scope === v} className={`rounded border p-2 ${scope === v ? 'bg-[#263b59] text-white' : ''}`} onClick={() => setScope(v)}>{v === 'single' ? localLabel : allLabel}</button>)}</div>
       <div className="overflow-x-auto"><table className="w-full text-left"><thead><tr><th>Removal scope</th><th>Performance</th><th>MAE: before → after</th><th>MAE improvement (%)</th><th>MSE: before → after</th><th>MSE improvement (%)</th></tr></thead><tbody>{row(local, localLabel)}{row(all, allLabel)}</tbody></table></div>
       {relevant.length === 1 && <p className="text-sm text-ink-500">Equivalent scopes: this edge is effective in only one context.</p>}
+    </section>
+    <section className="card space-y-4 p-5" aria-labelledby="cross-sample-consistency-heading">
+      <div><div className="eyebrow">Across test samples · {data.model} · {relation}</div><h3 id="cross-sample-consistency-heading" className="mt-1">Across-sample consistency by {isMsg ? 'scale' : 'window'}</h3><p className="mt-2 text-sm text-ink-500">The currently selected relation is evaluated in every effective {isMsg ? 'scale' : 'window'}; changing the relation elsewhere updates this entire panel.</p></div>
+      <div className="grid gap-4 lg:grid-cols-2">{consistencyScopes.map(item => <article key={item.key} className={`rounded-xl border p-4 ${item.selected ? 'border-[#16827f] bg-[#f2faf9]' : 'border-line bg-[#fafbfd]'}`}>
+        <div className="flex items-center justify-between gap-3"><h4 className="font-semibold">{item.label}</h4>{item.selected && <span className="rounded-full bg-[#16827f] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">Selected context</span>}</div>
+        <div className="mt-4 space-y-4">{(['mae', 'mse'] as const).map(m => {
+          const summary = consistency(item.scope, m, item.context), total = summary.available || 1;
+          return <div key={m}><div className="flex items-baseline justify-between gap-3"><b className="text-sm">{m.toUpperCase()}</b><span className="text-xs text-ink-500">n = {summary.available}/{timeSamples.length}</span></div><div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" aria-label={`${item.label} ${m.toUpperCase()}: ${summary.text}`}><span className="bg-[#16827f]" style={{width: `${summary.improved / total * 100}%`}}/><span className="bg-[#c95445]" style={{width: `${summary.degraded / total * 100}%`}}/><span className="bg-slate-300" style={{width: `${summary.unchanged / total * 100}%`}}/></div><div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs"><span className="text-[#14736f]">● {summary.available ? Number((summary.improved / summary.available * 100).toFixed(1)) : 0}% improved</span><span className="text-[#b7473a]">● {summary.available ? Number((summary.degraded / summary.available * 100).toFixed(1)) : 0}% degraded</span><span className="text-ink-500">● {summary.available ? Number((summary.unchanged / summary.available * 100).toFixed(1)) : 0}% little change</span></div></div>;
+        })}</div>
+      </article>)}</div>
+      <p className="text-xs leading-relaxed text-ink-500">Each available test sample is one forecast task. Its {data.horizon} forecast steps and {data.outputs.length} outputs are averaged before classification. Missing removals are excluded from n. This is descriptive and does not use a significance test.</p>
     </section>
     <section className="card p-5">
       <h3>{metric.toUpperCase()} change after edge removal · {label}</h3>
