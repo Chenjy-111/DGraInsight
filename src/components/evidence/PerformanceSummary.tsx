@@ -50,7 +50,7 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
   };
   const row = (r: Record | undefined, name: string) => <tr key={name}><td>{name}</td><td>{conclusion(sample.baseline, r?.after)}</td>{(['mae', 'mse'] as const).map(m => <Fragment key={m}><td>{num(mean(sample.baseline[m]))} → {num(r ? mean(r.after[m]) : NaN)}</td><td>{pct(percent(mean(sample.baseline[m]), r ? mean(r.after[m]) : NaN))}</td></Fragment>)}</tr>;
   const consistencyScopes = [
-    ...relevant.map(c => ({ key: `single-${c.index}`, label: `${isMsg ? 'Scale' : 'Window'} ${isMsg ? c.index : c.index + 1}`, context: c.index, scope: 'single' as const, selected: c.index === context })),
+    { key: `single-${context}`, label: localLabel, context, scope: 'single' as const, selected: true },
     { key: 'all', label: allLabel, context: -1, scope: 'all' as const, selected: false }
   ];
   return <div className="performance-summary space-y-5" data-testid="performance-summary">
@@ -73,8 +73,8 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
       {relevant.length === 1 && <p className="text-sm text-ink-500">Equivalent scopes: this edge is effective in only one context.</p>}
     </section>
     <section className="card space-y-4 p-5" aria-labelledby="cross-sample-consistency-heading">
-      <div><div className="eyebrow">Across test samples · {data.model} · {relation}</div><h3 id="cross-sample-consistency-heading" className="mt-1">Across-sample consistency by {isMsg ? 'scale' : 'window'}</h3><p className="mt-2 text-sm text-ink-500">The currently selected relation is evaluated in every effective {isMsg ? 'scale' : 'window'}; changing the relation elsewhere updates this entire panel.</p></div>
-      <div className="grid gap-4 lg:grid-cols-2">{consistencyScopes.map(item => <article key={item.key} className={`rounded-xl border p-4 ${item.selected ? 'border-[#16827f] bg-[#f2faf9]' : 'border-line bg-[#fafbfd]'}`}>
+      <div><div className="eyebrow">Across test samples · {data.model} · {relation}</div><h3 id="cross-sample-consistency-heading" className="mt-1">Across-sample consistency</h3><p className="mt-2 text-sm text-ink-500">The left card follows the selected {isMsg ? 'scale' : 'window'} above. The right card always shows removal across all relevant {isMsg ? 'scales' : 'windows'}.</p></div>
+      <div className="grid gap-4 md:grid-cols-2">{consistencyScopes.map(item => <article key={item.key} className={`rounded-xl border p-4 ${item.selected ? 'border-[#16827f] bg-[#f2faf9]' : 'border-line bg-[#fafbfd]'}`}>
         <div className="flex items-center justify-between gap-3"><h4 className="font-semibold">{item.label}</h4>{item.selected && <span className="rounded-full bg-[#16827f] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">Selected context</span>}</div>
         <div className="mt-4 space-y-4">{(['mae', 'mse'] as const).map(m => {
           const summary = consistency(item.scope, m, item.context), total = summary.available || 1;

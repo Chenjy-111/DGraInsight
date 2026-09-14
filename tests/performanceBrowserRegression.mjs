@@ -20,7 +20,7 @@ try {
  await area.getByRole('button',{name:'HUFL → LUFL',exact:true}).click();
  await summary.getByRole('button',{name:'Window 2',exact:true}).click();
  await summary.waitFor();const relation=(await summary.locator('.eyebrow').innerText());
- assert.match(await consistency.innerText(),/HUFL → LUFL/);assert.match(await consistency.innerText(),/Window 1[\s\S]*Window 2[\s\S]*All relevant windows/);
+ assert.match(await consistency.innerText(),/HUFL → LUFL/);assert.match(await consistency.innerText(),/Window 2[\s\S]*Selected context[\s\S]*All relevant windows/);assert.doesNotMatch(await consistency.innerText(),/Window 1/);
  await summary.getByRole('button',{name:'All relevant windows',exact:true}).click();
  await summary.getByRole('button',{name:'MSE',exact:true}).click();
  assert.equal(await summary.locator('.eyebrow').innerText(),relation);
