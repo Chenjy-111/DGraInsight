@@ -116,7 +116,7 @@ function WindowGraph({ edges, windowIndex, active, positionX, positions, ...prop
   const visible = displayEdges(edges.filter((edge) => edge.kept), props.displayRatio, props.displayThreshold);
   return <group
     position={[positionX, 0, active ? .35 : -.4]}
-    rotation={[THREE.MathUtils.degToRad(-4), THREE.MathUtils.degToRad(-27), THREE.MathUtils.degToRad(-1.5)]}
+    rotation={[THREE.MathUtils.degToRad(-4), 0, THREE.MathUtils.degToRad(-1.5)]}
     scale={active ? 1.04 : .76}
   >
     <mesh onClick={(e) => { e.stopPropagation(); props.onClearSelection(windowIndex); }}>
