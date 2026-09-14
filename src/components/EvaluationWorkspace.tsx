@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { calculateMetrics, displayedMetrics, metricChange, rankedRemovals, type EvaluationRecord, type EvaluationResults } from '@/data/evaluation';
+import { calculateMetrics, crossSampleConsistency, displayedMetrics, metricChange, rankedRemovals, sameEvaluationRequest, type EvaluationRecord, type EvaluationResults } from '@/data/evaluation';
 
 const selectClass = 'rounded-lg border border-line bg-white px-3 py-2 text-[12px]';
 const fmt = (v: number | null) => v === null ? 'Unavailable' : Number(v.toPrecision(6)).toString();
-const sameRelation = (a: EvaluationRecord, b: EvaluationRecord) => a.source != null ? a.source === b.source && a.target === b.target : a.label === b.label;
-const sameRequest = (a: EvaluationRecord, b: EvaluationRecord) => sameRelation(a, b) && a.protocolId === b.protocolId && JSON.stringify([...a.contextIds].sort()) === JSON.stringify([...b.contextIds].sort());
 
 export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
   const [sampleId, setSampleId] = useState(data.samples[0].id);
@@ -20,13 +18,14 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
   const [page, setPage] = useState(0);
   const ranked = useMemo(() => rankedRemovals(sample, data.records, output, metric), [sample, data.records, output, metric]);
   const relationLabel = (r: EvaluationRecord) => r.source != null ? `${label(r.source)} → ${label(r.target!)}` : r.label;
+  const consistency = useMemo(() => record ? crossSampleConsistency(data, record) : [], [data, record]);
   const filtered = ranked.filter(({ record: r }) => `${relationLabel(r)} ${r.source ?? ''} ${r.target ?? ''}`.toLowerCase().includes(relationFilter.toLowerCase()));
   const pageCount = Math.max(1, Math.ceil(filtered.length / 50));
   const currentPage = Math.min(page, pageCount - 1);
   const color = (status?: string) => status === 'Improved' ? 'text-emerald-700' : status === 'Degraded' ? 'text-red-600' : 'text-slate-500';
   const selectRecord = (r: EvaluationRecord) => setRecordId(r.id);
   const chooseSample = (id: string) => {
-    const nextRecord = record ? data.records.find(r => r.sampleId === id && sameRequest(r, record)) : undefined;
+    const nextRecord = record ? data.records.find(r => r.sampleId === id && sameEvaluationRequest(r, record)) : undefined;
     setSampleId(id); setRecordId(nextRecord?.id ?? ''); setPage(0);
   };
   const raw = !!(sample.truth && sample.baselinePrediction && record?.prediction);
@@ -76,6 +75,23 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
         {record && !values && <p role="status">Per-output metrics unavailable. Choose All outputs to view stored aggregate metrics.</p>}
         {values && <div className="overflow-x-auto"><table className="w-full text-left text-[12px]"><thead><tr>{['Metric', 'Before', 'After', 'After − before', 'Improvement %', 'Change'].map(v => <th className="p-2" key={v}>{v}</th>)}</tr></thead><tbody>{(['mae', 'mse'] as const).map(k => { const c = metricChange(values.before[k], values.after[k]); return <tr key={k} className="border-t border-line"><th className="p-2 uppercase">{k}</th><td className="p-2">{fmt(values.before[k])}</td><td className="p-2">{fmt(values.after[k])}</td><td className="p-2">{fmt(c.delta)}</td><td className="p-2">{fmt(c.improvement)}</td><td className="p-2">{c.label}</td></tr>; })}</tbody></table></div>}
     </section>
+    {record && <section className="card space-y-4 p-5" data-testid="evaluation-consistency">
+      <div><div className="eyebrow">Across uploaded test samples · {relationLabel(record)}</div><h3 className="mt-1 text-lg font-semibold">Cross-sample consistency by graph context</h3><p className="mt-2 text-sm text-ink-500">The selected relation is matched across all samples using the same removal protocol and context IDs. Values use the stored all-output mean.</p></div>
+      <div className="grid gap-4 lg:grid-cols-2">{consistency.map(group => {
+        const contextNames = group.representative.contextIds.map(id => data.samples.flatMap(s => s.contexts).find(c => c.id === id)?.label ?? id);
+        const protocol = data.protocols.find(p => p.id === group.representative.protocolId);
+        const groupLabel = contextNames.length ? contextNames.join(', ') : protocol?.label ?? group.representative.label;
+        return <article key={group.key} className={`rounded-xl border p-4 ${group.selected ? 'border-[#16827f] bg-[#f2faf9]' : 'border-line bg-[#fafbfd]'}`}>
+          <div className="flex flex-wrap items-start justify-between gap-2"><div><h4 className="font-semibold">{groupLabel}</h4>{protocol && protocol.label !== groupLabel && <p className="mt-1 text-xs text-ink-500">{protocol.label}</p>}</div><div className="flex items-center gap-2"><span className="text-xs text-ink-500">n = {group.available}/{group.total}</span>{group.selected && <span className="rounded-full bg-[#16827f] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">Selected removal</span>}</div></div>
+          {!group.assessable ? <div className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><b>Insufficient data for cross-sample consistency.</b><p className="mt-1 text-xs">At least 2 matching samples are required; this context has n = {group.available}.</p></div> : <div className="mt-4 space-y-4">{(['mae', 'mse'] as const).map(m => {
+            const counts = group.directions[m], total = group.available;
+            const share = (count: number) => Number((count / total * 100).toFixed(1));
+            return <div key={m}><b className="text-sm">{m.toUpperCase()}</b><div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-slate-100" aria-label={`${groupLabel} ${m.toUpperCase()}: ${share(counts.improved)}% improved, ${share(counts.degraded)}% degraded, ${share(counts.unchanged)}% little change`}><span className="bg-[#16827f]" style={{width: `${share(counts.improved)}%`}}/><span className="bg-[#c95445]" style={{width: `${share(counts.degraded)}%`}}/><span className="bg-slate-300" style={{width: `${share(counts.unchanged)}%`}}/></div><div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs"><span className="text-[#14736f]">● {share(counts.improved)}% improved</span><span className="text-[#b7473a]">● {share(counts.degraded)}% degraded</span><span className="text-ink-500">● {share(counts.unchanged)}% little change</span></div></div>;
+          })}</div>}
+        </article>;
+      })}</div>
+      <p className="text-xs leading-relaxed text-ink-500">Each matching sample contributes one stored aggregate MAE and MSE result. Missing removals are excluded from n. Percentages are descriptive and do not use a significance test.</p>
+    </section>}
     <section className="card p-5" data-testid="removal-change-chart">
       <h3 className="text-lg font-semibold">{metric.toUpperCase()} change after edge removal · Sample {sampleId}</h3>
       {record && <p className="mt-2 text-sm text-slate-600">{relationLabel(record)} · {output < 0 ? 'All outputs (mean)' : data.outputs[output]}</p>}

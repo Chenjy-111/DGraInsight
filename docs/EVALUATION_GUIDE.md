@@ -25,6 +25,8 @@ python -m dgraudit validate-results evaluation_results.json
 ```
 
 Choose **Import Evaluation Results → Choose Evaluation Results** on the website.
+
+For the selected relation, the imported-results workspace groups matching removal records by protocol and context IDs across all samples. A group with at least two matching samples displays descriptive MAE/MSE direction percentages. A group with only one matching sample is retained but labeled as insufficient for cross-sample consistency. Missing removals are excluded from the displayed `n`; the JSON format does not need an additional summary field.
 The browser never imports Python, loads a checkpoint or performs a model forward.
 It validates result identities and recomputes stored metrics where raw arrays exist.
 

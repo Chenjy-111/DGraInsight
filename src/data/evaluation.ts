@@ -111,6 +111,39 @@ export function metricChange(before: number, after: number) {
     label: Math.abs(delta) <= Math.abs(before) * 0.001 ? 'No noticeable change' : delta < 0 ? 'Improved' : 'Degraded' };
 }
 
+export const sameEvaluationRelation = (a: EvaluationRecord, b: EvaluationRecord) =>
+  a.source != null ? a.source === b.source && a.target === b.target : a.label === b.label;
+
+export const sameEvaluationRequest = (a: EvaluationRecord, b: EvaluationRecord) =>
+  sameEvaluationRelation(a, b) && a.protocolId === b.protocolId
+  && JSON.stringify([...a.contextIds].sort()) === JSON.stringify([...b.contextIds].sort());
+
+export function crossSampleConsistency(data: EvaluationResults, selected: EvaluationRecord) {
+  const requestKey = (record: EvaluationRecord) => JSON.stringify([record.protocolId, [...record.contextIds].sort()]);
+  const selectedKey = requestKey(selected), groups = new Map<string, EvaluationRecord[]>();
+  for (const record of data.records.filter(record => sameEvaluationRelation(record, selected))) {
+    const key = requestKey(record), records = groups.get(key) ?? [];
+    records.push(record); groups.set(key, records);
+  }
+  return [...groups.entries()].map(([key, records]) => {
+    const directions = (['mae', 'mse'] as const).reduce((result, metric) => {
+      const counts = { improved: 0, degraded: 0, unchanged: 0 };
+      for (const record of records) {
+        const sample = data.samples.find(sample => sample.id === record.sampleId);
+        if (!sample) continue;
+        const label = metricChange(sample.baselineMetrics[metric], record.metrics[metric]).label;
+        if (label === 'Improved') counts.improved++;
+        else if (label === 'Degraded') counts.degraded++;
+        else counts.unchanged++;
+      }
+      result[metric] = counts;
+      return result;
+    }, {} as Record<'mae' | 'mse', { improved: number; degraded: number; unchanged: number }>);
+    const available = directions.mae.improved + directions.mae.degraded + directions.mae.unchanged;
+    return { key, representative: records[0], selected: key === selectedKey, available, total: data.samples.length, assessable: available >= 2, directions };
+  });
+}
+
 export function displayedMetrics(sample: EvaluationSample, record: EvaluationRecord, output: number) {
   if (output >= 0) {
     if (!sample.truth || !sample.baselinePrediction || !record.prediction) return null;
