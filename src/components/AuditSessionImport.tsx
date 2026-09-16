@@ -2,11 +2,15 @@ import { useRef } from 'react';
 import { Database, FileJson, LoaderCircle, RotateCcw, ShieldCheck, Upload, X } from 'lucide-react';
 import { useAuditSessionStore } from '@/store/useAuditSessionStore';
 import { useWorkflowStore } from '@/store/useWorkflowStore';
+import { useDemoStore } from '@/store/useDemoStore';
 
 export function AuditSessionImport() {
   const inputRef = useRef<HTMLInputElement>(null);
   const model = useWorkflowStore(state => state.model);
   const setModel = useWorkflowStore(state => state.setModel);
+  const runGuidedExample = useWorkflowStore(state => state.runGuidedExample);
+  const setDemo = useDemoStore(state => state.set);
+  const setCase = useDemoStore(state => state.setCase);
   const source = useAuditSessionStore(state => state.source);
   const sessionV2 = useAuditSessionStore(state => state.sessionV2);
   const evaluation = useAuditSessionStore(state => state.evaluation);
@@ -27,13 +31,14 @@ export function AuditSessionImport() {
     }
     if (inputRef.current) inputRef.current.value = '';
   };
-  const loadExistingExample = async () => {
-    const value = await importFile({ name: 'Reference evaluation', text: async () => {
-      const response = await fetch(`${import.meta.env.BASE_URL}data/evaluation/mtgnn.json`);
-      if (!response.ok) throw new Error('The reference results could not be loaded');
-      return response.text();
-    }} as File, model);
-    if (value) { setModel('MTGNN'); setTimeout(() => document.getElementById('discovery-workspace')?.scrollIntoView({ behavior: 'smooth' }), 0); }
+  const loadExistingExample = () => {
+    if (source === 'imported') closeSession();
+    runGuidedExample();
+    setCase({ dataset: 'ETTh1', sampleId: 0, horizon: 96 });
+    setDemo('windowIdx', 0);
+    setDemo('selectedEdge', { source: 0, target: 4 });
+    setDemo('view', 'graph');
+    setTimeout(() => document.getElementById('discovery-workspace')?.scrollIntoView({ behavior: 'smooth' }), 0);
   };
   const restoreDemo = () => {
     const restoreModel = previousModel ?? 'DGraFormer';
@@ -54,7 +59,7 @@ export function AuditSessionImport() {
         <article className={`rounded-xl border p-5 ${source === 'built_in' ? 'border-accent/40 bg-white shadow-card' : 'border-line bg-white/60'}`}>
           <div className="flex items-center gap-2 text-[#263b59]"><Database size={19}/><h3 className="text-[18px] font-semibold">Explore built-in results</h3></div>
           <p className="mt-3 text-[14px] leading-7 text-ink-500">Explore stored relation-removal results.</p>
-          <button disabled={busy} onClick={() => void loadExistingExample()} className="mt-4 mr-3 rounded-lg bg-[#263b59] px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-60">Load existing example</button>
+          <button disabled={busy} onClick={loadExistingExample} className="mt-4 mr-3 rounded-lg bg-[#263b59] px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-60">Load existing example</button>
           {source === 'imported' && <button onClick={restoreDemo} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#263b59] bg-white px-4 py-2.5 text-[13px] font-semibold text-[#263b59]"><RotateCcw size={15}/>Return to Built-in Demo</button>}
         </article>
         <article className={`rounded-xl border p-5 ${source === 'imported' ? 'border-[#16827f] bg-[#edf7f6]' : 'border-line bg-white'}`}>
