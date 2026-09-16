@@ -31,8 +31,8 @@ export default function App() {
 
   return <div className="min-h-screen bg-paper">
     <Hero/>
-    <AuditSessionImport/>
     <RelationRemovalWorkflow/>
+    <AuditSessionImport/>
     <section id="discovery-workspace" className="border-b border-line bg-white">
       <WorkspaceHeader number="01" title="Edge-Removal Evaluation" text="Select a stored relation and compare forecast errors before and after removal."/>
       {imported ? <ImportedModelLock model={evaluation?.model ?? sessionV2!.model.name as string} context={evaluation ? 'declared' : sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
