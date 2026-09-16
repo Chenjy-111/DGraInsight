@@ -9,7 +9,23 @@ export function DynamicGraphView() {
   const win = sample?.windows[s.windowIdx];
 
   const retainedWindows = useMemo(
-    () => sample?.windows.map((window) => window.active_input_steps?.length === 0 ? [] : window.kept_edges.map((edge) => ({ ...edge, kept: true }))) ?? [],
+    () => sample?.windows.map((window) => {
+      if (window.active_input_steps?.length === 0) return [];
+      const normalizedEdges = window.kept_edges.map((edge) => ({
+        ...edge,
+        weight: window.sparse_graph[edge.source][edge.target],
+        kept: true,
+      }));
+      const ranks = new Map(
+        [...normalizedEdges]
+          .sort((left, right) => Math.abs(right.weight) - Math.abs(left.weight))
+          .map((edge, index) => [`${edge.source}-${edge.target}`, index + 1])
+      );
+      return normalizedEdges.map((edge) => ({
+        ...edge,
+        rank: ranks.get(`${edge.source}-${edge.target}`) ?? edge.rank,
+      }));
+    }) ?? [],
     [sample]
   );
   if (!sample || !win) return null;

@@ -145,7 +145,7 @@ function CorrelationEdge({ edge, variables, active, selected, dimmed, a, b, onCl
     {active && edge.kept && !dimmed && <mesh ref={particle}><sphereGeometry args={[selected ? .055 : .035, 10, 10]} /><meshBasicMaterial color={selected ? '#ef8a72' : '#63c8c2'} transparent opacity={.9} /></mesh>}
     {hovered && <Billboard position={bend}><Html center distanceFactor={8} style={{ pointerEvents: 'none' }}><div className="min-w-[150px] rounded-lg border border-[#cfd7e2] bg-white/95 p-2.5 text-[10px] shadow-xl backdrop-blur">
       <div className="font-semibold text-[#26364d]">{variables[edge.source]} → {variables[edge.target]}</div>
-      <div className="mt-1 flex justify-between gap-4 text-[#6f7d90]"><span>Correlation</span><b className="font-mono text-[#26364d]">{edge.weight.toFixed(4)}</b></div>
+      <div className="mt-1 flex justify-between gap-4 text-[#6f7d90]"><span>Normalized weight</span><b className="font-mono text-[#26364d]">{edge.weight.toFixed(6)}</b></div>
       <div className="flex justify-between gap-4 text-[#6f7d90]"><span>Weight rank</span><b className="text-[#26364d]">#{edge.rank}</b></div>
       <div className={`mt-1.5 rounded px-1.5 py-1 text-center font-semibold ${edge.kept ? 'bg-[#e4f4f1] text-[#167a77]' : 'bg-[#faeae6] text-[#a64f3d]'}`}>{edge.kept ? 'Retained by the stored model mask' : 'Excluded by the stored model mask'}</div>
     </div></Html></Billboard>}
