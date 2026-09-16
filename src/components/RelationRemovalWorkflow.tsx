@@ -1,6 +1,5 @@
 import { Activity, BarChart3, Search, Unplug } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Section } from './layout/Section';
 
 const steps = [
   {
@@ -34,20 +33,26 @@ const steps = [
 ];
 
 export function RelationRemovalWorkflow() {
-  return <Section
-    id="relation-removal-workflow"
-    eyebrow="Relation-removal workflow"
-    title="How does DGraInsight analyze a relation?"
-    intro="A learned relation weight alone does not show how removing that relation changes forecast performance. DGraInsight removes the relation within its native model context, re-executes the fixed pretrained model and compares the resulting forecast errors."
-  >
+  return <section id="relation-removal-workflow" className="border-b border-line bg-white px-5 py-14">
+    <div className="mx-auto max-w-[1400px]">
+      <motion.p
+        className="max-w-5xl border-l-4 border-accent bg-[#edf7f6] px-6 py-5 font-serif text-[20px] font-medium leading-relaxed text-[#263b59] md:text-[23px]"
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.7 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
+        Graph-based time-series forecasting models use graph structures to represent relationships among nodes. However, learned relation weights alone may not fully reflect how forecasting performance changes after a relation is removed.
+      </motion.p>
+      <div className="mt-10"><div className="eyebrow mb-3">Relation-removal workflow</div><h2 className="font-serif text-[28px] font-semibold leading-tight">How does DGraInsight analyze a relation?</h2></div>
     <motion.div
-      className="relative grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+      className="relative mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.2 }}
       variants={{
         hidden: {},
-        visible: { transition: { staggerChildren: 0.12 } },
+        visible: { transition: { staggerChildren: 0.24 } },
       }}
     >
       <motion.div
@@ -56,14 +61,14 @@ export function RelationRemovalWorkflow() {
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
+        transition={{ duration: 1.6, ease: 'easeOut' }}
       />
       {steps.map(({ number, title, body, icon: Icon, tone }) => <motion.article
         key={number}
         className="card relative flex min-h-[260px] flex-col p-6 transition-shadow hover:shadow-lg"
         variants={{
           hidden: { opacity: 0, y: 24 },
-          visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.85, ease: 'easeOut' } },
         }}
         whileHover={{ y: -6 }}
       >
@@ -75,14 +80,6 @@ export function RelationRemovalWorkflow() {
         <p className="mt-3 text-[14px] leading-7 text-ink-500">{body}</p>
       </motion.article>)}
     </motion.div>
-    <motion.p
-      className="mt-5 rounded-xl border border-line bg-[#fafbfd] px-5 py-4 text-[14px] leading-7 text-ink-500"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.35, duration: 0.5 }}
-    >
-      Results describe the selected model, checkpoint, relation, context and removal scope. An average improvement does not mean that every forecasting origin improves.
-    </motion.p>
-  </Section>;
+    </div>
+  </section>;
 }
