@@ -1,16 +1,11 @@
 import { useEffect } from 'react';
 import { GitBranch, LockKeyhole, Waves } from 'lucide-react';
 import { Hero } from './components/Hero';
-import { ResearchMotivation } from './components/ResearchMotivation';
-import { MethodExplainer } from './components/MethodExplainer';
-import { SystemOverview } from './components/SystemOverview';
-import { SystemArchitecture } from './components/SystemArchitecture';
-import { Limitations } from './components/Limitations';
+import { RelationRemovalWorkflow } from './components/RelationRemovalWorkflow';
 import { CitationSection } from './components/CitationSection';
 import { VisualizationCanvas } from './components/VisualizationCanvas';
 import { ControlStudio } from './components/ControlStudio';
 import { MsgnetDataWorkspace } from './components/MsgnetWorkspace';
-import { WorkflowBar } from './components/WorkflowChrome';
 import { AuditSessionImport } from './components/AuditSessionImport';
 import { ImportedSessionV2Workspace } from './components/ImportedSessionV2Workspace';
 import { DgraSessionV2Evidence, MsgnetSessionV2Evidence } from './components/SessionV2Evidence';
@@ -22,7 +17,6 @@ import { EvaluationWorkspace } from './components/EvaluationWorkspace';
 export default function App() {
   const model = useWorkflowStore(state => state.model);
   const setModel = useWorkflowStore(state => state.setModel);
-  const pending = useWorkflowStore(state => state.pendingIntervention);
   const load = useDemoStore(state => state.loadCurrent);
   const immersive = useDemoStore(state => state.view === 'graph' && state.graphLayout === '3d-timeline');
   const setDemo = useDemoStore(state => state.set);
@@ -38,10 +32,7 @@ export default function App() {
   return <div className="min-h-screen bg-paper">
     <Hero/>
     <AuditSessionImport/>
-    <ResearchMotivation/>
-    <MethodExplainer/>
-    <SystemOverview/>
-    {!evaluation && <WorkflowBar/>}
+    <RelationRemovalWorkflow/>
     <section id="discovery-workspace" className="border-b border-line bg-white">
       <WorkspaceHeader number="01" title="Edge-Removal Evaluation" text="Select a stored relation and compare forecast errors before and after removal."/>
       {imported ? <ImportedModelLock model={evaluation?.model ?? sessionV2!.model.name as string} context={evaluation ? 'declared' : sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
@@ -62,8 +53,6 @@ export default function App() {
             </>
           : <><MsgnetDataWorkspace/><MsgnetSessionV2Evidence/></>}
     </section>
-    <SystemArchitecture/>
-    <Limitations/>
     <CitationSection/>
     <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Offline edge-removal evaluation and forecast performance exploration</footer>
   </div>;
