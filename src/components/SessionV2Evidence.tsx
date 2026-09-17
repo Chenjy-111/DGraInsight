@@ -4,9 +4,9 @@ import { useDemoStore } from '@/store/useDemoStore';
 import { useWorkflowStore } from '@/store/useWorkflowStore';
 import { loadPerformance, type Data } from '@/data/performance';
 import { PerformanceSummary, Unavailable } from './evidence/PerformanceSummary';
-function usePerformance(model: string) { const [data, setData] = useState<Data | null>(null), [error, setError] = useState(''); useEffect(() => { let live = true; loadPerformance(model).then(d => { if (live)
+function usePerformance(model: string, enabled = true) { const [data, setData] = useState<Data | null>(null), [error, setError] = useState(''); useEffect(() => { if (!enabled) return; let live = true; loadPerformance(model).then(d => { if (live)
     setData(d); }).catch(e => { if (live)
-    setError(String(e)); }); return () => { live = false; }; }, [model]); return { data, error }; }
+    setError(String(e)); }); return () => { live = false; }; }, [model, enabled]); return { data, error }; }
 export function DgraSessionV2Evidence({ supplied }: {
     supplied?: AuditSessionV2 | null;
 }) {
@@ -32,13 +32,16 @@ export function DgraSessionV2Evidence({ supplied }: {
 export function MsgnetSessionV2Evidence({ supplied }: {
     supplied?: AuditSessionV2 | null;
 }) {
-    const selection = useWorkflowStore(s => s.selection), select = useWorkflowStore(s => s.selectRelation), { data, error } = usePerformance('MSGNet');
+    const selection = useWorkflowStore(s => s.selection), select = useWorkflowStore(s => s.selectRelation);
+    const s = selection?.model === 'MSGNet' ? selection : null;
+    const { data, error } = usePerformance('MSGNet', !!s);
     if (supplied)
         return <Unavailable text="This legacy import has no independent performance results. Regenerate the results."/>;
+    if (!s)
+        return <section id="msgnet-session-v2-evidence" className="mx-auto max-w-[1400px] space-y-5 px-5 pb-14"><p>Select a directed relation (source → target) to load its performance results.</p></section>;
     if (error)
         return <Unavailable text={error}/>;
     if (!data)
         return <p>Loading MSGNet performance data…</p>;
-    const s = selection?.model === 'MSGNet' ? selection : null;
-    return <section id="msgnet-session-v2-evidence" className="mx-auto max-w-[1400px] space-y-5 px-5 pb-14">{!s ? <p>Select an effective edge to view results.</p> : <PerformanceSummary data={data} sampleId={s.sample} context={s.contextIndex} source={s.source} target={s.target} relation={`G${s.source} → G${s.target}`} onContext={i => select({ ...s, contextIndex: i })}/>}</section>;
+    return <section id="msgnet-session-v2-evidence" className="mx-auto max-w-[1400px] space-y-5 px-5 pb-14"><PerformanceSummary data={data} sampleId={s.sample} context={s.contextIndex} source={s.source} target={s.target} relation={`G${s.source} → G${s.target}`} onContext={i => select({ ...s, contextIndex: i })}/></section>;
 }
