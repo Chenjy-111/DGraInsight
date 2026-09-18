@@ -4,6 +4,16 @@ This folder contains the complete current offline workflow described by the pape
 
 No model, dataset or checkpoint is downloaded or trained by this application.
 
+The evaluator's tested CPU baseline is pinned in `requirements-core.txt`:
+
+```bash
+python -m pip install -r requirements-core.txt
+```
+
+Original forecasting models can require additional dependencies. Read
+[`docs/RESOURCE_MANIFEST.md`](docs/RESOURCE_MANIFEST.md) for the exact built-in
+artifact hashes, external-resource boundary and model-by-model status.
+
 ## Windows quick start
 
 1. Keep this folder together after extraction.
@@ -38,6 +48,7 @@ The 0.1% threshold used by the website is a descriptive display threshold, not a
 | `adapters/template.py` | Thin Adapter starter |
 | `examples/stemgnn/` | Paper-aligned external StemGNN adapter example |
 | `docs/` | Developer API, development and release notes |
+| `requirements-core.txt` | Pinned CPU baseline for evaluator and contract checks |
 | `build.py` | Current-only release packager |
 
 There are no retired pre-paper modules in this folder or in its generated release package. Historical material is kept separately under the repository's `legacy/` directory.

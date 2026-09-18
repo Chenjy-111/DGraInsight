@@ -16,8 +16,10 @@ def build(destination):
         "dgraudit/thin_adapter.py", "dgraudit/adapters.py", "dgraudit/msgnet_semantics.py",
         "dgraudit/cli/__init__.py", "dgraudit/cli/evaluate.py",
         "Start-Evaluation.cmd", "Start-Offline.ps1", "offline.py", "README.md",
+        "requirements-core.txt",
         "ADAPTER_GUIDE.md", "adapters/template.py",
         "docs/EVALUATION_GUIDE.md", "docs/OFFLINE_RELEASE_NOTES.md",
+        "docs/RESOURCE_MANIFEST.md",
         "examples/stemgnn/stemgnn.py", "examples/stemgnn/example_config.json",
         "examples/stemgnn/README.md",
     ]

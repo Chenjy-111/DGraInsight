@@ -2,7 +2,7 @@
 
 DGraInsight is an interactive system for analyzing how removing a learned relation changes the forecast errors of a fixed graph time-series forecasting model. It exposes architecture-specific graph contexts, reruns the same checkpoint after an explicit native relation removal, and compares the before/after MAE and MSE.
 
-[Open the live demo](https://chenjy-111.github.io/DGraInsight/) · [Reviewer guide](docs/REVIEWER_GUIDE.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Offline Evaluator](offline_app/README.md)
+[Open the live demo](https://chenjy-111.github.io/DGraInsight/) · [Reviewer guide](docs/REVIEWER_GUIDE.md) · [Reproducibility](docs/REPRODUCIBILITY.md) · [Resource manifest](offline_app/docs/RESOURCE_MANIFEST.md) · [Offline Evaluator](offline_app/README.md)
 
 ## What the demo contains
 

@@ -28,9 +28,16 @@ The browser reads stored results. These tests verify presentation and contract c
 The current Python package is self-contained under `offline_app/`:
 
 ```bash
+python -m pip install -r offline_app/requirements-core.txt
 python -m unittest discover -s tests -p "test_*.py"
 python offline_app/build.py outputs/release/DGraInsight-Offline-Evaluator
 ```
+
+The [resource manifest](../offline_app/docs/RESOURCE_MANIFEST.md) lists the
+checkpoint, dataset, source-file and raw-array identities used by the built-in
+results. It also states which resources are included and which must be supplied
+locally. The pinned file is the evaluator's tested CPU baseline, not a universal
+dependency lock for every upstream forecasting model.
 
 Maintained plugins require an environment compatible with the selected original model and its checkpoint. The Windows launcher looks for Python 3.10 or later with PyTorch and NumPy. It does not install dependencies, download source, train a model or substitute missing resources.
 

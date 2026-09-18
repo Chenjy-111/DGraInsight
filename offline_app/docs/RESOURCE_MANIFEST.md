@@ -1,0 +1,79 @@
+# Reproducibility resource manifest
+
+This manifest separates what can be reproduced from this repository alone from
+what requires an external model resource. It does not claim that every original
+training environment is bundled.
+
+## Reproduction levels
+
+| Level | Repository support |
+|---|---|
+| Website, stored-result logic and presentation | Complete from this repository with `npm ci`, `npm test` and `npm run build` |
+| MAE/MSE recomputation for the built-in DGraFormer and MSGNet results | Complete from the tracked raw arrays with `python scripts/verify_performance_v1.py` |
+| Offline Evaluator engine and result-contract checks | Complete with `pip install -r offline_app/requirements-core.txt` and the Python tests |
+| Fresh checkpoint-backed evaluation | Requires the exact original model source, dataset and checkpoint supplied locally |
+| Retraining original forecasting models | Outside the evaluator; follow the selected upstream model's training environment |
+
+The website consumes stored results and does not execute a neural checkpoint in
+the browser. A successful website build therefore verifies the artifact and its
+logic, not a fresh model run.
+
+## Built-in paper-facing artifacts
+
+| Resource | Identity recorded by the repository | Included |
+|---|---|---|
+| DGraFormer fixed checkpoint | SHA-256 `f6abbd4e9b32ae80851f42d5476069c41c66b900b181f9f24c56d445a1cead9f` | No |
+| MSGNet fixed checkpoint | SHA-256 `78cf820042156a3e7d30e137ad944b9fb9a079b3d50be4893b49d1567bb6309d` | No |
+| ETTh1 CSV used by both results | SHA-256 `f18de3ad269cef59bb07b5438d79bb3042d3be49bdeecf01c1cd6d29695ee066` | No |
+| DGraFormer raw before/after arrays | SHA-256 `8956cdb0f38abd961cc48cda0db12c2e0f58b8a0c77c7e5be55865fc4d2cd7ed` | Yes, `artifacts/performance/v1/dgraformer_raw.npz` |
+| MSGNet raw before/after arrays | SHA-256 `6068426f2bcc5101033cc40a4e3547319e31930533973b312dd67703ed97f71f` | Yes, `artifacts/performance/v1/msgnet_raw.npz` |
+
+The corresponding `public/data/performance/v1/*.json` files also record model
+parameters, evaluated sample indices, source-file hashes and the generation
+environment (`Python 3.12.14`, `PyTorch 2.14.0+cpu`, CPU). The raw-array verifier
+checks 598,464 DGraFormer error values and 584,064 MSGNet error values against
+the public JSON with exact equality. The tracked verification summary is
+`artifacts/performance/v1/verification.json`.
+
+The fixed checkpoints, ETTh1 CSV and third-party source trees are intentionally
+not redistributed. Their hashes prevent a different local resource from being
+silently represented as the paper's run. Without those exact external files, a
+reviewer can recompute and inspect the published metrics but cannot regenerate
+the raw arrays from the neural checkpoints.
+
+## Offline model resources
+
+| Model path | Source, dataset and checkpoint requirement |
+|---|---|
+| DGraFormer maintained plugin | Supply a compatible DGraFormer source tree, the ETTh1 file and checkpoint; `profiles/dgraformer.json` records the architecture and seed |
+| MSGNet maintained plugin | Supply a compatible MSGNet source tree, the ETTh1 file and checkpoint; `profiles/msgnet.json` records the architecture and seed |
+| MTGNN maintained plugin | Supply a compatible MTGNN source tree, Exchange-Rate data and checkpoint; this is an evaluator integration, not a built-in paper-result workspace |
+| External Thin Adapter | Supply resources declared by the adapter and record their identities in `evaluation.v1` provenance |
+
+Profile paths are blank by design. The guided launcher asks the reviewer to
+select local resources, computes their SHA-256 values, and stores those values
+in the generated evaluation manifest.
+
+## StemGNN paper example
+
+- Upstream source: `https://github.com/microsoft/StemGNN`
+- Source revision: `dc7dea6842c20c5dcece2f18b435e26770b3421c`
+- Official model-file SHA-256: `fa247c2036046091c6f68e27967ce45ace3e04ed16bbf2e957cc8df56374500a`
+- Compatible adapter model-file SHA-256: `ae87de6c4ed4c011ec35bb28bcea194b291f9b14ed3ae306ef19faac38eb9f25`
+- Locally trained checkpoint SHA-256: `2a8780f6324b60550133721dcf6770200074a34c9e38023f1834cd987925eb5d`
+- Processed JHU COVID-19 dataset SHA-256: `58bd45956f25d57762982da99b9647d47bec8d1b146d3d255a4b7b314f022c67`
+
+The checkpoint and processed dataset are not bundled. The adapter rejects a
+declared dataset or checkpoint whose hash does not match the selected file. See
+`examples/stemgnn/README.md` and `examples/stemgnn/example_config.json`.
+
+## Environment boundary
+
+`requirements-core.txt` pins the CPU environment used to exercise the evaluator
+engine and portable result contract. It is not a universal dependency lock for
+DGraFormer, MSGNet, MTGNN or StemGNN. Those models execute from their original
+source trees and may need model-specific packages. Use a separate environment
+matching the chosen upstream revision, then point `DGRAINSIGHT_PYTHON` to it.
+
+Every fresh `evaluation.v1` output records resource hashes and available runtime
+versions. Keep that manifest with any result cited outside the built-in demo.

@@ -36,6 +36,8 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertTrue((target / 'profiles/mtgnn.json').exists())
             self.assertTrue((target / 'examples/stemgnn/stemgnn.py').exists())
             self.assertTrue((target / 'examples/stemgnn/README.md').exists())
+            self.assertTrue((target / 'requirements-core.txt').exists())
+            self.assertTrue((target / 'docs/RESOURCE_MANIFEST.md').exists())
             self.assertFalse((target / 'adapters/agcrn.py').exists())
             self.assertNotIn('agcrn', (target / 'offline.py').read_text(encoding='utf-8').lower())
             help_result = subprocess.run(
@@ -64,6 +66,8 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertNotIn('examples/stemgnn/screen_stemgnn.py', copied)
             self.assertNotIn('examples/stemgnn/verify_stemgnn_screen.py', copied)
             self.assertIn('docs/EVALUATION_GUIDE.md', copied)
+            self.assertIn('docs/RESOURCE_MANIFEST.md', copied)
+            self.assertIn('requirements-core.txt', copied)
             self.assertIn('dgraudit/evaluation.py', copied)
 
 

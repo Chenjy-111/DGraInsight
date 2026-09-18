@@ -9,6 +9,7 @@
 5. Inspect the all-scale `G4 → G3` example: MAE and MSE improve by about 0.106% and 0.152%, with MAE improvement in 10 of 14 samples (71.4%).
 6. Open **Import Evaluation Results** to inspect the portable `evaluation.v1` path. The browser validates and displays stored results; it does not run the neural model.
 7. Review [`offline_app/examples/stemgnn/`](../offline_app/examples/stemgnn/README.md) for the external-model example. On test sample 9, removing the undirected `US — France` relation degrades MAE by about 4.69% and MSE by about 11.38%.
+8. Use the [`resource manifest`](../offline_app/docs/RESOURCE_MANIFEST.md) to distinguish repository-complete checks from checkpoint-backed runs that require declared external resources.
 
 ## Claim-to-code map
 

@@ -1,0 +1,6 @@
+# Tested CPU-only baseline for the evaluator engine and its contract tests.
+# Original forecasting models may require additional dependencies from their
+# own source revision; see docs/RESOURCE_MANIFEST.md before running a model.
+--extra-index-url https://download.pytorch.org/whl/cpu
+numpy==1.24.3
+torch==2.1.1+cpu
