@@ -39,12 +39,12 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
     grid: { top: 45, bottom: 65, left: 80, right: 30 },
     tooltip: { trigger: 'axis', renderMode: 'richText', formatter: (params: { dataIndex: number }[]) => {
       const i = params[0]?.dataIndex, step = steps[i];
-      return step ? `Forecast step ${i + 1}\nBefore: ${fmt(step.before)}\nAfter: ${fmt(step.after)}\nΔ${metric.toUpperCase()} (baseline − after removal): ${fmt(step.delta)}\n${step.label}` : '';
+      return step ? `Forecast step ${i + 1}\nBefore: ${fmt(step.before)}\nAfter: ${fmt(step.after)}\nΔ${metric.toUpperCase()} (after removal − baseline): ${fmt(step.delta)}\n${step.label}` : '';
     } },
     xAxis: { type: 'category', name: 'Forecast step', nameLocation: 'middle', nameGap: 35, data: steps.map((_, i) => String(i + 1)), axisTick: { alignWithLabel: true } },
     yAxis: { type: 'value', name: `Δ${metric.toUpperCase()}`, splitLine: { lineStyle: { color: '#e2e8f0' } } },
     series: [{ name: `Δ${metric.toUpperCase()}`, type: 'bar', barMaxWidth: 48,
-      data: steps.map(step => ({ value: step.delta, itemStyle: { color: step.delta > 0 ? '#047857' : step.delta < 0 ? '#dc2626' : '#64748b', borderRadius: 3 } })),
+      data: steps.map(step => ({ value: step.delta, itemStyle: { color: step.delta > 0 ? '#dc2626' : step.delta < 0 ? '#047857' : '#64748b', borderRadius: 3 } })),
       markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#475569', type: 'solid' }, data: [{ yAxis: 0 }] },
     }],
   };
@@ -73,7 +73,7 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
       {record && <h4 className={`font-semibold ${color(values ? metricChange(values.before[metric], values.after[metric]).label : undefined)}`}>{relationLabel(record)}</h4>}
         {!record && <p role="status" className="text-sm text-ink-500">No stored removal selected. Select a result; an edge without a computed result is unavailable.</p>}
         {record && !values && <p role="status">Per-output metrics unavailable. Choose All outputs to view stored aggregate metrics.</p>}
-        {values && <div className="overflow-x-auto"><table className="w-full text-left text-[12px]"><thead><tr>{['Metric', 'Before', 'After', 'Baseline − after', 'Improvement %', 'Change'].map(v => <th className="p-2" key={v}>{v}</th>)}</tr></thead><tbody>{(['mae', 'mse'] as const).map(k => { const c = metricChange(values.before[k], values.after[k]); return <tr key={k} className="border-t border-line"><th className="p-2 uppercase">{k}</th><td className="p-2">{fmt(values.before[k])}</td><td className="p-2">{fmt(values.after[k])}</td><td className="p-2">{fmt(c.delta)}</td><td className="p-2">{fmt(c.improvement)}</td><td className="p-2">{c.label}</td></tr>; })}</tbody></table></div>}
+        {values && <div className="overflow-x-auto"><table className="w-full text-left text-[12px]"><thead><tr>{['Metric', 'Before', 'After', 'Δ (after removal − baseline)', 'Change (%)', 'Classification'].map(v => <th className="p-2" key={v}>{v}</th>)}</tr></thead><tbody>{(['mae', 'mse'] as const).map(k => { const c = metricChange(values.before[k], values.after[k]); return <tr key={k} className="border-t border-line"><th className="p-2 uppercase">{k}</th><td className="p-2">{fmt(values.before[k])}</td><td className="p-2">{fmt(values.after[k])}</td><td className="p-2">{fmt(c.delta)}</td><td className="p-2">{fmt(c.percentChange)}</td><td className="p-2">{c.label}</td></tr>; })}</tbody></table></div>}
     </section>
     {record && <section className="card space-y-4 p-5" data-testid="evaluation-consistency">
       <div><div className="eyebrow">Across uploaded test samples · {relationLabel(record)}</div><h3 className="mt-1 text-lg font-semibold">Cross-sample consistency by graph context</h3><p className="mt-2 text-sm text-ink-500">The selected relation is matched across all samples using the same removal protocol and context IDs. Values use the stored all-output mean.</p></div>
@@ -95,7 +95,7 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
     <section className="card p-5" data-testid="removal-change-chart">
       <h3 className="text-lg font-semibold">{metric.toUpperCase()} change after edge removal · Sample {sampleId}</h3>
       {record && <p className="mt-2 text-sm text-slate-600">{relationLabel(record)} · {output < 0 ? 'All outputs (mean)' : data.outputs[output]}</p>}
-      <p className="mt-2 text-sm">Δ{metric.toUpperCase()} = baseline − after removal. Above zero: better; below zero: worse.</p>
+      <p className="mt-2 text-sm">Δ{metric.toUpperCase()} = after removal − baseline. Above zero: worse; below zero: better.</p>
       <div className="mt-4 flex flex-wrap gap-5 text-xs"><span className="text-emerald-700">Improved · lower error</span><span className="text-red-600">Degraded · higher error</span><span className="text-slate-500">No noticeable change</span></div>
       {raw ? <ReactECharts option={chart} notMerge style={{ height: 360 }}/> : <p className="my-8 text-sm text-slate-500">Forecast-step error changes unavailable: prediction and truth arrays are required.</p>}
     </section>

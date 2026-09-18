@@ -28,13 +28,15 @@ for(const r of aggregate.records) { delete r.prediction; delete r.source; delete
 assert.equal(validateEvaluation(aggregate).ok, true);
 assert.equal(displayedMetrics(aggregate.samples[0],aggregate.records[0],0),null);
 assert.deepEqual(displayedMetrics(aggregate.samples[0],aggregate.records[0],-1).after,aggregate.records[0].metrics);
-assert.equal(metricChange(0,1).improvement,null);
+assert.equal(metricChange(0,1).percentChange,null);
 assert.equal(metricChange(0,0).label,'No noticeable change');
 assert.equal(metricChange(1000,1001).label,'No noticeable change');
 assert.equal(metricChange(1,0.5).label,'Improved');
 assert.equal(metricChange(1,1.5).label,'Degraded');
-assert.equal(metricChange(1,0.5).delta,0.5);
-assert.equal(metricChange(1,1.5).delta,-0.5);
+assert.equal(metricChange(1,0.5).delta,-0.5);
+assert.equal(metricChange(1,1.5).delta,0.5);
+assert.equal(metricChange(1,0.5).percentChange,-50);
+assert.equal(metricChange(1,1.5).percentChange,50);
 assert.equal(validateEvaluation(JSON.parse(fs.readFileSync('public/data/evaluation/mtgnn.json'))).ok,true);
 const consistency = crossSampleConsistency(d, d.records[0]);
 assert.ok(consistency.length >= 1);

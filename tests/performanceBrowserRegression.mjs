@@ -11,7 +11,7 @@ try {
  const area=page.locator('#dgra-performance-evidence'),summary=area.locator('[data-testid="performance-summary"]');
  await area.getByRole('button').first().waitFor();assert.equal(await summary.count(),0);
  await area.getByRole('button',{name:'HUFL → MUFL',exact:true}).click();
- await summary.waitFor();assert.match(await summary.innerText(),/0.35204207/);assert.match(await summary.innerText(),/ΔMAE = baseline − after removal\. Above zero: better; below zero: worse\./);assert.equal(await summary.getByRole('button',{name:'By forecast step',exact:true}).getAttribute('aria-pressed'),'true');assert.equal(await summary.locator('details').getAttribute('open'),null);
+ await summary.waitFor();assert.match(await summary.innerText(),/0.35204207/);assert.match(await summary.innerText(),/ΔMAE = after removal − baseline\. Above zero: worse; below zero: better\./);assert.match(await summary.innerText(),/MAE change \(%\)[\s\S]*MSE change \(%\)/);assert.equal(await summary.getByRole('button',{name:'By forecast step',exact:true}).getAttribute('aria-pressed'),'true');assert.equal(await summary.locator('details').getAttribute('open'),null);
  const consistency=summary.getByRole('heading',{name:/Across-sample consistency/}).locator('..').locator('..');assert.match(await consistency.innerText(),/MAE[\s\S]*improved[\s\S]*degraded[\s\S]*little change[\s\S]*MSE/);assert.match(await consistency.innerText(),/n = \d+\/40/);
  assert.doesNotMatch(await summary.innerText(),/Supported|Not supported|Detail|BH|对照均值|稳定性|显著性/);
  assert.equal(await summary.getByRole('button',{name:'Window 2',exact:true}).count(),0);

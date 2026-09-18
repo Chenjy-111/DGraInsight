@@ -63,28 +63,28 @@ export function loadPerformance(model: string) {
     return cache.get(key)!;
 }
 export const mean = (v: number[]) => v.length && v.every(Number.isFinite) ? v.reduce((a, b) => a + b, 0) / v.length : NaN;
-export const paperDelta = (baseline: number, afterRemoval: number) => baseline - afterRemoval;
-export const percent = (b: number, a: number) => b > 0 && Number.isFinite(a) ? (b - a) / b * 100 : NaN;
+export const errorDelta = (baseline: number, afterRemoval: number) => afterRemoval - baseline;
+export const changePercent = (baseline: number, afterRemoval: number) => baseline > 0 && Number.isFinite(afterRemoval) ? errorDelta(baseline, afterRemoval) / baseline * 100 : NaN;
 export type MetricDirection = 'improved' | 'degraded' | 'unchanged' | 'unavailable';
 export function metricDirection(before: number, after: number, floor = 0): MetricDirection {
     if (!Number.isFinite(before) || !Number.isFinite(after) || before < 0 || floor < 0)
         return 'unavailable';
-    const delta = paperDelta(before, after), threshold = Math.max(before * .001, floor);
+    const delta = errorDelta(before, after), threshold = Math.max(before * .001, floor);
     const tolerance = Number.EPSILON * Math.max(1, Math.abs(before), Math.abs(after), threshold) * 8;
-    return delta > threshold + tolerance ? 'improved' : delta < -threshold - tolerance ? 'degraded' : 'unchanged';
+    return delta < -threshold - tolerance ? 'improved' : delta > threshold + tolerance ? 'degraded' : 'unchanged';
 }
 export function conclusion(before: Errors | undefined, after: Errors | undefined, floor = 0) {
     if (!before || !after)
         return 'Results unavailable';
-    const states = (['mae', 'mse'] as const).map(m => ({ improved: 1, degraded: -1, unchanged: 0, unavailable: NaN })[metricDirection(mean(before[m]), mean(after[m]), floor)]);
+    const states = (['mae', 'mse'] as const).map(m => ({ improved: -1, degraded: 1, unchanged: 0, unavailable: NaN })[metricDirection(mean(before[m]), mean(after[m]), floor)]);
     const [a, b] = states;
     if (!states.every(Number.isFinite))
         return 'Results unavailable';
     if (!a && !b)
         return 'No noticeable change';
     if (a === b)
-        return a > 0 ? 'Performance improved' : 'Performance degraded';
+        return a < 0 ? 'Performance improved' : 'Performance degraded';
     if (a && b)
         return 'Mixed metric changes';
-    return `${a ? 'MAE' : 'MSE'} ${(a || b) > 0 ? 'improved' : 'degraded'} only`;
+    return `${a ? 'MAE' : 'MSE'} ${(a || b) < 0 ? 'improved' : 'degraded'} only`;
 }
