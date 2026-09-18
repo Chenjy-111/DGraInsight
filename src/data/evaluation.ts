@@ -106,9 +106,9 @@ export function validateEvaluation(input: unknown): { ok: true; value: Evaluatio
 }
 
 export function metricChange(before: number, after: number) {
-  const delta = after - before;
+  const delta = before - after;
   return { delta, improvement: before > 0 ? (before - after) / before * 100 : null,
-    label: Math.abs(delta) <= Math.abs(before) * 0.001 ? 'No noticeable change' : delta < 0 ? 'Improved' : 'Degraded' };
+    label: Math.abs(delta) <= Math.abs(before) * 0.001 ? 'No noticeable change' : delta > 0 ? 'Improved' : 'Degraded' };
 }
 
 export const sameEvaluationRelation = (a: EvaluationRecord, b: EvaluationRecord) =>

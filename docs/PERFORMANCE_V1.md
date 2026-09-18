@@ -8,6 +8,6 @@ Select a relation before reading its summary. Samples, graph contexts, removal s
 
 The forecast-step view averages output errors at each step for the selected sample. The cross-sample view averages all steps and outputs within each available sample. Missing removals remain unavailable and are excluded from displayed denominators.
 
-The UI stores signed error change as `after - before`, so negative values indicate improved error and positive values indicate degraded error. It also reports improvement as `(before - after) / before`, matching the paper's improvement-oriented sign convention. The 0.1% baseline-relative threshold labels small changes descriptively; it does not establish significance or equivalence.
+The UI plots signed error change as `baseline - after removal`, matching the paper: positive values indicate improved error and negative values indicate degraded error. Improvement percentage remains `(baseline - after removal) / baseline`. The 0.1% baseline-relative threshold labels small changes descriptively; it does not establish significance or equivalence.
 
 Run `npm run test:performance` to verify record identities, formulas, classification and coverage. Run `python scripts/verify_performance_v1.py` to recompute metrics from the saved raw arrays.

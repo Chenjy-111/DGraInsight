@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import ts from 'typescript';
 const source=fs.readFileSync('src/data/performance.ts','utf8');
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
-const {conclusion,mean,metricDirection,percent}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+const {conclusion,mean,metricDirection,paperDelta,percent}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
 const e=(mae,mse=mae)=>({mae:[mae],mse:[mse]});
 assert.equal(conclusion(e(1),e(.9)),'Performance improved');
 assert.equal(conclusion(e(1),e(1.1)),'Performance degraded');
@@ -14,6 +14,8 @@ assert.equal(conclusion(e(1),e(.9,1.1)),'Mixed metric changes');
 assert.equal(conclusion(undefined,e(1)),'Results unavailable');
 assert.equal(conclusion(e(NaN),e(1)),'Results unavailable');
 assert.ok(Number.isNaN(percent(0,1)));
+assert.ok(Math.abs(paperDelta(1,.9)-.1)<1e-12);
+assert.ok(Math.abs(paperDelta(1,1.1)+.1)<1e-12);
 assert.equal(mean([1,3]),2);
 assert.equal(conclusion({mae:[1,1],mse:[1,1]},{mae:[.5,1.5],mse:[.5,1.5]}),'No noticeable change');
 assert.equal(metricDirection(1,.998),'improved');
@@ -56,4 +58,9 @@ for(let i=0;i<5;i++) {
  }
 }
 assert.ok(!/[\p{Script=Han}]/u.test(fs.readFileSync('src/components/evidence/PerformanceSummary.tsx','utf8')));
+const summarySource=fs.readFileSync('src/components/evidence/PerformanceSummary.tsx','utf8');
+assert.match(summarySource,/baseline − after removal\. Above zero: better; below zero: worse\./);
+assert.doesNotMatch(summarySource,/after removal − baseline\. Above zero: worse/);
+const evaluationSource=fs.readFileSync('src/components/EvaluationWorkspace.tsx','utf8');
+assert.match(evaluationSource,/baseline − after removal\. Above zero: better; below zero: worse\./);
 console.log('Effective-window options match native graph results for all web samples and directed relations: PASS');

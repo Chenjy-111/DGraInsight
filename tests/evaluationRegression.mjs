@@ -33,6 +33,8 @@ assert.equal(metricChange(0,0).label,'No noticeable change');
 assert.equal(metricChange(1000,1001).label,'No noticeable change');
 assert.equal(metricChange(1,0.5).label,'Improved');
 assert.equal(metricChange(1,1.5).label,'Degraded');
+assert.equal(metricChange(1,0.5).delta,0.5);
+assert.equal(metricChange(1,1.5).delta,-0.5);
 assert.equal(validateEvaluation(JSON.parse(fs.readFileSync('public/data/evaluation/mtgnn.json'))).ok,true);
 const consistency = crossSampleConsistency(d, d.records[0]);
 assert.ok(consistency.length >= 1);
