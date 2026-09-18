@@ -22,16 +22,15 @@ jobs:
       - name: Test current offline runtime
         run: |
           python -m unittest discover -s tests -p test_offline_distribution.py
-          python -m unittest discover -s tests -p test_agcrn_source_revision.py
           python -m unittest discover -s tests -p test_evaluation.py
           python -m unittest discover -s tests -p test_thin_adapter.py
       - name: Build downloads
         run: |
-          python scripts/build_offline.py outputs/release/DGraInsight-Offline-Evaluator --agcrn-example outputs/release/AGCRN-Adapter --zip
+          python offline_app/build.py outputs/release/DGraInsight-Offline-Evaluator --zip
           cd outputs/release
-          sha256sum DGraInsight-Offline-Evaluator.zip AGCRN-Adapter.zip > SHA256SUMS.txt
+          sha256sum DGraInsight-Offline-Evaluator.zip > SHA256SUMS.txt
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" outputs/release/*.zip outputs/release/SHA256SUMS.txt --verify-tag --latest --title "DGraInsight Offline Evaluator $GITHUB_REF_NAME" --notes-file docs/OFFLINE_RELEASE_NOTES.md
+          gh release create "$GITHUB_REF_NAME" outputs/release/*.zip outputs/release/SHA256SUMS.txt --verify-tag --latest --title "DGraInsight Offline Evaluator $GITHUB_REF_NAME" --notes-file offline_app/docs/OFFLINE_RELEASE_NOTES.md

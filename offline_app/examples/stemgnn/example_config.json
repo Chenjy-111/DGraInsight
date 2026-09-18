@@ -1,0 +1,38 @@
+{
+  "version": "evaluation.config.v1",
+  "plugin": "external",
+  "backend": {
+    "source_root": ".",
+    "module": "stemgnn",
+    "class": "StemGNNAdapter"
+  },
+  "source_root": "../source/official_stemgnn",
+  "checkpoint": {
+    "path": "../checkpoint/stemgnn_covid25_epoch27.pt",
+    "sha256": "2a8780f6324b60550133721dcf6770200074a34c9e38023f1834cd987925eb5d"
+  },
+  "dataset": {
+    "name": "JHU COVID-25 daily confirmed cases",
+    "path": "../data/processed/covid25_daily_2020.csv",
+    "sha256": "58bd45956f25d57762982da99b9647d47bec8d1b146d3d255a4b7b314f022c67"
+  },
+  "samples": [9],
+  "requests": [
+    {
+      "sampleId": "9",
+      "protocolId": "single",
+      "contextIds": ["latent-correlation"],
+      "source": "11",
+      "target": "24",
+      "label": "Ecuador -- Korea, South"
+    },
+    {
+      "sampleId": "9",
+      "protocolId": "single",
+      "contextIds": ["latent-correlation"],
+      "source": "0",
+      "target": "7",
+      "label": "US -- France"
+    }
+  ]
+}

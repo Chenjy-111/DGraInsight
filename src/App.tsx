@@ -6,13 +6,12 @@ import { CitationSection } from './components/CitationSection';
 import { VisualizationCanvas } from './components/VisualizationCanvas';
 import { ControlStudio } from './components/ControlStudio';
 import { MsgnetDataWorkspace } from './components/MsgnetWorkspace';
-import { AuditSessionImport } from './components/AuditSessionImport';
-import { ImportedSessionV2Workspace } from './components/ImportedSessionV2Workspace';
-import { DgraSessionV2Evidence, MsgnetSessionV2Evidence } from './components/SessionV2Evidence';
+import { EvaluationImport } from './components/EvaluationImport';
 import { useDemoStore } from './store/useDemoStore';
 import { useWorkflowStore, type WorkflowModel } from './store/useWorkflowStore';
-import { useAuditSessionStore } from './store/useAuditSessionStore';
+import { useEvaluationStore } from './store/useEvaluationStore';
 import { EvaluationWorkspace } from './components/EvaluationWorkspace';
+import { DgraPerformanceEvidence, MsgnetPerformanceEvidence } from './components/CurrentPerformanceEvidence';
 
 export default function App() {
   const model = useWorkflowStore(state => state.model);
@@ -20,38 +19,32 @@ export default function App() {
   const load = useDemoStore(state => state.loadCurrent);
   const immersive = useDemoStore(state => state.view === 'graph' && state.graphLayout === '3d-timeline');
   const setDemo = useDemoStore(state => state.set);
-  const source = useAuditSessionStore(state => state.source);
-  const sessionV2 = useAuditSessionStore(state => state.sessionV2);
-  const evaluation = useAuditSessionStore(state => state.evaluation);
-  const generation = useAuditSessionStore(state => state.generation);
-  const importedV2 = source === 'imported' && sessionV2 !== null;
-  const imported = importedV2 || evaluation !== null;
+  const evaluation = useEvaluationStore(state => state.evaluation);
+  const generation = useEvaluationStore(state => state.generation);
+  const imported = evaluation !== null;
 
   useEffect(() => { void load(); }, [load]);
 
   return <div className="min-h-screen bg-paper">
     <Hero/>
     <RelationRemovalWorkflow/>
-    <AuditSessionImport/>
+    <EvaluationImport/>
     <section id="discovery-workspace" className="border-b border-line bg-white">
       <WorkspaceHeader number="01" title="Edge-Removal Evaluation" text="Select a stored relation and compare forecast errors before and after removal."/>
-      {imported ? <ImportedModelLock model={evaluation?.model ?? sessionV2!.model.name as string} context={evaluation ? 'declared' : sessionV2!.model.native_context_type as string}/> : <ModelSwitch value={model} onChange={next => {
+      {imported ? <ImportedModelLock model={evaluation.model} context="declared"/> : <ModelSwitch value={model} onChange={next => {
         if (next === model) return;
         if (next === 'DGraFormer') { setDemo('view', 'graph'); setDemo('graphLayout', '3d-timeline'); }
         setModel(next);
       }}/>}
-      {evaluation ? <EvaluationWorkspace key={generation} data={evaluation}/> : importedV2
-        ? <ImportedSessionV2Workspace key={String((sessionV2.session as any).session_id)} session={sessionV2}/>
-        : model === 'DGraFormer'
+      {evaluation ? <EvaluationWorkspace key={generation} data={evaluation}/> : model === 'DGraFormer'
           ? <>
               <div className={immersive ? 'relative min-h-[920px] w-full overflow-hidden' : 'relative grid min-h-[920px] w-full gap-6 px-5 py-10 lg:grid-cols-[280px_minmax(0,1fr)]'}>
                 <div className={immersive ? 'absolute left-5 top-20 z-30 max-h-[760px] w-[280px] overflow-y-auto rounded-xl bg-white/90 p-4 shadow-xl' : ''}><ControlStudio/></div>
                 <VisualizationCanvas/>
-
               </div>
-              <DgraSessionV2Evidence/>
+              <DgraPerformanceEvidence/>
             </>
-          : <><MsgnetDataWorkspace/><MsgnetSessionV2Evidence/></>}
+          : <><MsgnetDataWorkspace/><MsgnetPerformanceEvidence/></>}
     </section>
     <CitationSection/>
     <footer className="border-t border-line bg-white px-5 py-8 text-center text-[12px] text-ink-400">DGraInsight · Offline edge-removal evaluation and forecast performance exploration</footer>

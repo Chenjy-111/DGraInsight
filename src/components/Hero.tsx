@@ -2,12 +2,12 @@ import { PlayCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useWorkflowStore } from '@/store/useWorkflowStore';
 import { useDemoStore } from '@/store/useDemoStore';
-import { useAuditSessionStore } from '@/store/useAuditSessionStore';
+import { useEvaluationStore } from '@/store/useEvaluationStore';
 
 export function Hero() {
   const runGuidedExample = useWorkflowStore(s => s.runGuidedExample);
   const setDemo = useDemoStore(s => s.set);
-  const imported = useAuditSessionStore(s => s.source === 'imported');
+  const imported = useEvaluationStore(s => s.source === 'imported');
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   const loadGuidedExample = () => {
     if (imported) {
@@ -25,7 +25,7 @@ export function Hero() {
     <div className="mx-auto grid max-w-[1400px] gap-10 px-5 py-16 lg:grid-cols-[1.1fr_.9fr] lg:py-20">
       <div><div className="eyebrow mb-3">Explore forecast performance under edge removal</div>
         <h1 className="font-serif text-[42px] font-semibold leading-none tracking-tight md:text-[56px]">DGra<span className="text-accent">Insight</span></h1>
-        <p className="mt-5 max-w-2xl text-[20px] leading-snug text-ink-800">Remove a relation. Compare forecast performance and assess cross-sample stability.</p>
+        <p className="mt-5 max-w-2xl text-[20px] leading-snug text-ink-800">Remove a relation. Compare forecast performance and inspect cross-sample consistency.</p>
         <div className="mt-7 flex flex-wrap gap-2.5">
           <Button variant="primary" icon={<PlayCircle size={15}/>} onClick={loadGuidedExample}>Start guided example</Button>
         </div>

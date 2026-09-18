@@ -1,0 +1,28 @@
+{
+  "fixture_version": "mtgnn_graph_baseline.v1",
+  "rule": "The current MTGNN graph/model core must remain byte-for-byte equivalent after canonical JSON serialization.",
+  "models": {
+    "MTGNN": {
+      "sample_count": 1,
+      "relation_count": 1,
+      "samples": [
+        {
+          "sample_id": "test:0",
+          "sample_index": 0,
+          "context_count": 1,
+          "node_counts": [8],
+          "graph_shapes": [
+            {
+              "learned_adjacency": [8, 8],
+              "transpose_adjacency": [8, 8]
+            }
+          ],
+          "graph_core_sha256": "02da10a3e68b8dbadb687b4ab9f8e02460cec7d76ccc6a5bf5ab2f71c45a62a6",
+          "baseline_prediction_sha256": "9e4189148ca2f06624b34d478180d7db51c7b2369f4eaead4a8f3f547dc97946",
+          "contexts_sha256": "607b8d71af6836196474265a2d292cba3825adad507bc68337296e32e7413b8a"
+        }
+      ],
+      "relation_core_sha256": "8f16026b76fcf13e219734eb7756f17995fb195d727946156ad0f59a19cc44fa"
+    }
+  }
+}

@@ -1,60 +1,53 @@
 # Reproducibility
 
-Run commands from the repository root. Distinguish interface checks, recomputation of stored arrays, and fresh model execution: passing one does not prove the others.
+## Website and stored-result checks
 
-## 1. Build and validate the interface
-
-Use Node.js 20 or newer:
+Install the JavaScript dependencies and run the deterministic data/logic tests:
 
 ```bash
 npm ci
+npm test
 npm run build
-npm run test:web-graph-regression
-npm run test:session-v2-validator
-node tests/sessionV2WebRegression.mjs
-npm run test:performance
-node tests/evaluationRegression.mjs
 ```
 
-Graph regression compares the committed DGraFormer, MSGNet and MTGNN graph fixtures. The other checks cover result validation and performance calculations. Test fixtures demonstrate the contracts; they are not additional scientific experiments.
+The test suite validates graph semantics, `performance.v1`, `evaluation.v1`, relation selection, the 0.1% descriptive classification rule, forecast-step profiles and cross-sample summaries.
 
-## 2. Check browser interactions
-
-Install Playwright in a test environment with Microsoft Edge available. Start `npm run preview -- --port 5181`, then run:
+Browser regressions require a local preview plus Playwright:
 
 ```bash
-npm run test:evaluation-browser
-npm run test:performance-browser
+npm run dev -- --host 127.0.0.1 --port 5181
+npm run test:web-graph
+npm run test:web-performance
+npm run test:web-evaluation
 ```
 
-The tests default to `http://127.0.0.1:5181/DGraInsight/`. Set `PERFORMANCE_URL` for another preview address and `PLAYWRIGHT_MODULE` if Playwright is installed outside this project. Tests cover edge selection, model/sample/context switching, MAE/MSE, imports, invalid and partial results, chart rendering and restoration of the built-in demo.
+The browser reads stored results. These tests verify presentation and contract consistency; they do not rerun neural checkpoints.
 
-## 3. Recompute stored results
+## Offline Evaluator checks
 
-Use Python with NumPy:
+The current Python package is self-contained under `offline_app/`:
 
 ```bash
-python scripts/verify_performance_v1.py
-python -m unittest discover -s tests -p test_evaluation.py
-python -m unittest discover -s tests -p test_thin_adapter.py
+python -m unittest discover -s tests -p "test_*.py"
+python offline_app/build.py outputs/release/DGraInsight-Offline-Evaluator
 ```
 
-The performance verifier reads `artifacts/performance/v1/*_raw.npz`, checks archive hashes and compares the published metrics with calculations from those arrays. Read the resulting `artifacts/performance/v1/verification.json`; a metric match is not a fresh checkpoint replay.
+Maintained plugins require an environment compatible with the selected original model and its checkpoint. The Windows launcher looks for Python 3.10 or later with PyTorch and NumPy. It does not install dependencies, download source, train a model or substitute missing resources.
 
-`requirements.txt` pins the earlier Python 3.9 scientific environment. Do not install those pins blindly into newer Python versions. Live adapters and the AGCRN study require a compatible original-model environment (AGCRN: Python 3.10+). Use the runtime versions recorded with each result when reproducing that experiment.
+Before executing removals, the evaluator checks adapter loading, explicit sample loading, baseline prediction, relation extraction, identity intervention and an actual edge intervention. `evaluation.v1` stores resource hashes and declared provenance. Correct placement of a native intervention remains model-specific and must be verified by the adapter implementation.
 
-## 4. Execute original models
+## Built-in data
 
-Obtain the original model source, matching checkpoint and dataset. Configure local paths using [the Evaluation guide](EVALUATION_GUIDE.md). Maintain source revisions, hashes, split, normalization, sample identities and intervention scope.
+- `public/data/performance/v1/dgraformer.json` and `msgnet.json` are the website's paper-facing built-in results.
+- Raw-array verification assets are under `artifacts/performance/v1/`.
+- `python scripts/verify_performance_v1.py` recomputes stored metrics from those arrays.
 
-To regenerate the built-in performance experiments, execute each model in a separate process to avoid collisions between upstream packages:
+## External StemGNN example
 
-```bash
-python scripts/export_performance_v1.py --model dgraformer --source-root <source> --checkpoint <checkpoint.pth> --data-path <ETTh1.csv>
-python scripts/export_performance_v1.py --model msgnet --source-root <source> --checkpoint <checkpoint.pth> --data-path <ETTh1.csv>
-python scripts/verify_performance_v1.py
-```
+The current example adapter and its declared resources are documented in [`offline_app/examples/stemgnn/`](../offline_app/examples/stemgnn/README.md). It uses the pinned Microsoft StemGNN source, a locally trained checkpoint and processed JHU COVID-19 daily counts. The adapter preserves StemGNN's native graph-to-spectral computation and masks both directions of the selected undirected relation before rerunning the model.
 
-These export commands write experiment artifacts; use a separate checkout for new runs. [AGCRN reproduction](../integrations/agcrn_external/README.md) and [MTGNN integration](../integrations/mtgnn_external/README.md) provide model-specific instructions.
+Large third-party model sources, datasets and checkpoints are not bundled in the repository release. Reproduction therefore requires the exact local resources whose hashes are declared in the example configuration.
 
-The archived MSGNet replay has a recorded failure at the declared tolerance. Preserve that failure and see [scientific semantics](SCIENTIFIC_SEMANTICS_REPAIR.md). [Session v2 compatibility](AUDIT_SESSION_V2.md) describes retained historical contracts separately.
+## Historical material
+
+Retired pre-paper implementations and notes are isolated under `legacy/`. They are preserved for provenance only, excluded from current release packaging, and should not be used to describe the submitted system.

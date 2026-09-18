@@ -120,7 +120,7 @@
       "version": "evaluation.config.v1",
       "plugin": "external",
       "backend": {
-        "source_root": "../integrations/contract_fixture",
+        "source_root": "offline_app/examples/contract_fixture",
         "module": "adapter",
         "class": "FixtureAdapter"
       },

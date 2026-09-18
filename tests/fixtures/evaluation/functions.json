@@ -50,7 +50,7 @@
       "version": "evaluation.config.v1",
       "plugin": "external",
       "backend": {
-        "source_root": "../dgraudit/examples",
+        "source_root": "../../../offline_app/dgraudit/examples",
         "module": "evaluation_functions_example",
         "factory": "create_backend"
       },

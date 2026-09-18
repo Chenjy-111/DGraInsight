@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_OUTPUT = path.join(ROOT, 'tests', 'fixtures', 'web_graph_baseline_v2.json');
+const DEFAULT_OUTPUT = path.join(ROOT, 'tests', 'fixtures', 'web_graph_baseline.json');
 
 const read = relative => JSON.parse(fs.readFileSync(path.join(ROOT, relative), 'utf8'));
 const sha256 = value => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -46,7 +46,7 @@ export function captureWebGraphBaseline() {
     })),
   }));
 
-  const pipeline = read('tests/fixtures/pipeline_v2_graph_baseline.json');
+  const pipeline = read('tests/fixtures/mtgnn_graph_baseline.json');
   const mtgnn = pipeline.models.MTGNN;
   const mtgnnGraphCore = {
     sample_count: mtgnn.sample_count,

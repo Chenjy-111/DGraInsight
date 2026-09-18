@@ -5,17 +5,19 @@
   "type": "module",
   "description": "Interactive offline edge-removal evaluation for graph forecasting models.",
   "scripts": {
+    "test": "npm run test:performance && node tests/evaluationRegression.mjs && node tests/webGraphRegression.mjs",
     "dev": "vite --config vite.config.ts",
     "build": "tsc -b && vite build --config vite.config.ts",
-    "test:session-v2-validator": "tsc -p tsconfig.audit-session-v2-validator.json",
     "test:web-graph-regression": "node tests/webGraphRegression.mjs",
-    "test:web-session-v2": "npm run test:session-v2-validator && node tests/sessionV2WebRegression.mjs && node tests/customAdapterWebRegression.mjs",
+    "test:web-graph": "node tests/webGraphRegression.mjs",
     "preview": "vite preview --config vite.config.ts",
     "deploy": "npm run build && gh-pages -d dist",
     "test:performance": "node tests/performanceRegression.mjs",
     "test:performance-browser": "node tests/performanceBrowserRegression.mjs",
+    "test:web-performance": "node tests/performanceBrowserRegression.mjs",
     "test:evaluation": "python -X utf8 -m unittest discover -s tests -p test_evaluation.py && python -X utf8 -m unittest discover -s tests -p test_thin_adapter.py && node tests/evaluationRegression.mjs",
-    "test:evaluation-browser": "node tests/evaluationBrowserRegression.mjs"
+    "test:evaluation-browser": "node tests/evaluationBrowserRegression.mjs",
+    "test:web-evaluation": "node tests/evaluationBrowserRegression.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

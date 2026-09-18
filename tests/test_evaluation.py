@@ -3,7 +3,11 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "offline_app"))
 
 from dgraudit.evaluation import prepare_results, run_evaluation, validate_results, write_results
 from dgraudit.examples.evaluation_functions_example import create_backend, forward, load_sample

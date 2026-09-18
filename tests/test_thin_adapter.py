@@ -1,9 +1,12 @@
-import copy, tempfile, unittest
+import copy, tempfile, unittest, sys
 from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "offline_app"))
+sys.path.insert(0, str(ROOT / "offline_app" / "examples"))
 from dgraudit.thin_adapter import connect_adapter
 from dgraudit.evaluation import run_evaluation
 from dgraudit.evaluation_validation import validate_backend
-from integrations.contract_fixture.adapter import FixtureAdapter
+from contract_fixture.adapter import FixtureAdapter
 
 class ThinContractTests(unittest.TestCase):
     def backend(self): return connect_adapter(FixtureAdapter(), {})

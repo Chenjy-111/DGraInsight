@@ -138,13 +138,30 @@ def wizard():
     backend = load_backend(config, run_dir)
     requests = []
     try:
+        supports_all = bool(backend.metadata.get('capabilities', {}).get('supports_all_contexts'))
+        protocol = 'single'
+        if supports_all:
+            protocol_choice = input('Removal scope: 1 = one native context, 2 = all relevant contexts [1]: ').strip() or '1'
+            if protocol_choice not in ('1', '2'):
+                raise ValueError('Select 1 or 2.')
+            protocol = 'all' if protocol_choice == '2' else 'single'
         for sid in ids:
             sample = backend.load_sample(sid)
-            for context in backend.contexts(sample):
-                available = {(e['source'], e['target']) for e in context['edges'] if e['source'] != e['target']}
+            contexts = backend.contexts(sample)
+            if protocol == 'single':
+                for context in contexts:
+                    available = {(e['source'], e['target']) for e in context['edges'] if e['source'] != e['target']}
+                    chosen = sorted(available) if edges is None else [edge for edge in edges if edge in available]
+                    for s, t in chosen:
+                        requests.append({'sampleId': str(sid), 'protocolId': 'single', 'contextIds': [context['id']],
+                            'source': s, 'target': t, 'label': f'{s} -> {t}'})
+            else:
+                context_ids = [context['id'] for context in contexts]
+                available = {(e['source'], e['target']) for context in contexts for e in context['edges']
+                             if e['source'] != e['target']}
                 chosen = sorted(available) if edges is None else [edge for edge in edges if edge in available]
                 for s, t in chosen:
-                    requests.append({'sampleId': str(sid), 'protocolId': 'single', 'contextIds': [context['id']],
+                    requests.append({'sampleId': str(sid), 'protocolId': 'all', 'contextIds': context_ids,
                         'source': s, 'target': t, 'label': f'{s} -> {t}'})
             if edges is not None:
                 present = {(r['source'], r['target']) for r in requests if r['sampleId'] == str(sid)}
@@ -156,7 +173,7 @@ def wizard():
         raise ValueError('No eligible non-self edges were found.')
     config['requests'] = requests
     config_path.write_text(json.dumps(config, indent=2), encoding='utf-8')
-    print(f'Configuration saved: {config_path}\nPlanned edge removals: {len(requests)}. Each starts from the original graph.')
+    print(f'Configuration saved: {config_path}\nPlanned relation removals: {len(requests)}. Each starts from the original graph.')
     print('Large graphs can take a long time and produce large JSON files. Results are saved incrementally; --resume is available.')
     if input('Validate and start evaluation? [y/N]: ').strip().lower() != 'y':
         print('Configuration saved. Evaluation was not started.')

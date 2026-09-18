@@ -8,7 +8,7 @@ try {
  const page=await browser.newPage({viewport:{width:1440,height:1100}}),requests=[],errors=[];
  page.on('request',r=>requests.push(r.url()));page.on('pageerror',e=>errors.push(e.message));
  await page.goto(process.env.PERFORMANCE_URL||'http://127.0.0.1:5181/DGraInsight/',{waitUntil:'domcontentloaded'});
- const area=page.locator('#dgra-session-v2-evidence'),summary=area.locator('[data-testid="performance-summary"]');
+ const area=page.locator('#dgra-performance-evidence'),summary=area.locator('[data-testid="performance-summary"]');
  await area.getByRole('button').first().waitFor();assert.equal(await summary.count(),0);
  await area.getByRole('button',{name:'HUFL → MUFL',exact:true}).click();
  await summary.waitFor();assert.match(await summary.innerText(),/0.35204207/);assert.equal(await summary.getByRole('button',{name:'By forecast step',exact:true}).getAttribute('aria-pressed'),'true');assert.equal(await summary.locator('details').getAttribute('open'),null);
@@ -43,7 +43,7 @@ try {
  await page.getByTitle(/^G4 → G3:/).click();
  const directions=page.getByRole('group',{name:'MSGNet relation direction'});await directions.waitFor();
  assert.equal(await directions.getByRole('button').count(),2);
- const msg=page.locator('#msgnet-session-v2-evidence [data-testid="performance-summary"]');
+ const msg=page.locator('#msgnet-performance-evidence [data-testid="performance-summary"]');
  await msg.waitFor();assert.match(await msg.innerText(),/G4 → G3/);
  assert.match(await msg.getByRole('heading',{name:/Across-sample consistency/}).locator('..').locator('..').innerText(),/All relevant scales[\s\S]*71\.4% improved/);
  await directions.getByRole('button',{name:/Source G3.*Target G4/}).click();
@@ -52,7 +52,7 @@ try {
  await page.getByRole('heading',{name:'Internal scale graph · scale_index 2',exact:true}).waitFor();
  assert.match(await msg.innerText(),/G3 → G4/);
  await page.getByLabel('MSGNet graph sample',{exact:true}).selectOption('1');
- await page.waitForFunction(()=>document.querySelector('#msgnet-session-v2-evidence')?.textContent.includes('Test sample 537'));
+ await page.waitForFunction(()=>document.querySelector('#msgnet-performance-evidence')?.textContent.includes('Test sample 537'));
  assert.match(await msg.innerText(),/G3 → G4/);
  await msg.getByRole('button',{name:'By forecast step',exact:true}).click();
  await msg.getByLabel('Error point').selectOption('5');await msg.getByRole('status').filter({hasText:'Forecast step 6'}).waitFor();
@@ -65,7 +65,7 @@ try {
  const broken=await browser.newPage();
  await broken.route('**/performance/v1/dgraformer.json*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:'obsolete'})}));
  await broken.goto(process.env.PERFORMANCE_URL||'http://127.0.0.1:5181/DGraInsight/',{waitUntil:'domcontentloaded'});
- await broken.locator('#dgra-session-v2-evidence [role="alert"]').waitFor();
+ await broken.locator('#dgra-performance-evidence [role="alert"]').waitFor();
  assert.equal(await broken.locator('[data-testid="performance-summary"]').count(),0);
  console.log('Browser PASS: select-first, invalid windows omitted, sample/scope/scale sync, metrics, methods, 1 fetch/model, no audit fetch, fail-closed version.');
 } finally {await browser.close();}

@@ -1,34 +1,13 @@
-# Built-in performance results
+# `performance.v1`
 
-The website loads `public/data/performance/v1/dgraformer.json` and `msgnet.json`, once per model, through `src/data/performance.ts`. These assets use the `performance.v1` contract and are independent of Session v2 control/inference results.
+The website loads `public/data/performance/v1/dgraformer.json` and `msgnet.json` through `src/data/performance.ts`. These files contain the current built-in fixed-checkpoint relation-removal results.
 
-## Stored experiments
+Each record identifies a sample, native context, source, target and removal scope. A single-context record removes one relation in one native context. An all-context record removes that relation from every relevant native context in one run. Every run starts from the original graph and reruns the full forecast; removals are not cumulative.
 
-| Model | Baseline samples | Removal predictions | Graph contexts |
-|---|---:|---:|---|
-| DGraFormer | 44 | 3,073 | Effective native windows |
-| MSGNet | 18 | 3,024 | Native scale indices |
+Select a relation before reading its summary. Samples, graph contexts, removal scopes and highlighted edges remain synchronized. MSGNet scale indices are not time windows, and its `G0–G6` graph nodes are latent positions rather than named ETTh1 output variables.
 
-Raw arrays are in `artifacts/performance/v1/*_raw.npz`. The JSON `rawArchive` records the archive SHA-256 and array ordering: predictions follow records; baselines and truth follow samples. Source, checkpoint, dataset and runtime identities are recorded in the assets. Do not overwrite them when running a different experiment.
+The forecast-step view averages output errors at each step for the selected sample. The cross-sample view averages all steps and outputs within each available sample. Missing removals remain unavailable and are excluded from displayed denominators.
 
-## Display semantics
+The UI stores signed error change as `after - before`, so negative values indicate improved error and positive values indicate degraded error. It also reports improvement as `(before - after) / before`, matching the paper's improvement-oriented sign convention. The 0.1% baseline-relative threshold labels small changes descriptively; it does not establish significance or equivalence.
 
-Select a relation before reading its Summary. Samples, graph contexts, removal scopes and highlighted edges remain synchronized. Only effective contexts are offered for the selected relation; an invalid selection is cleared instead of silently replaced. MSGNet scale indices are not time windows, and its G0–G6 graph nodes are latent positions rather than named sensor outputs.
-
-The default **By forecast step** line chart averages output errors at each step of the selected sample. **Across test samples** averages all steps and outputs within each declared sample. Missing removals remain gaps. MAE and MSE are calculated separately; changing the view does not change stored predictions.
-
-The separate **Across-sample consistency** panel reports direction counts as percentages for MAE and MSE for the selected relation. Its left card follows the selected graph context, while its right card always reports the all-context removal. Changing the relation updates both cards. Each available test sample is classified after its forecast steps and outputs are averaged, using that sample's baseline-relative display threshold. Missing removal records are excluded from the denominator, which is shown as `n`.
-
-Signed change is `after - before`: negative/green is improved and positive/red is degraded. Improvement percentage is `(before - after) / before`; a zero baseline has no percentage. The inclusive `0.001 * baseline` threshold labels small changes descriptively, without changing their values or establishing significance. Aggregate raw errors first, then classify the aggregate.
-
-## Verification
-
-```bash
-python scripts/verify_performance_v1.py
-npm run test:performance
-npm run test:web-graph-regression
-```
-
-The verifier recomputes metrics from the raw archives and checks their hashes. [Reproducibility](REPRODUCIBILITY.md) separates this check from live checkpoint execution and lists browser tests.
-
-The independent performance runs do not turn the archived MSGNet replay result into PASS. See [scientific semantics and replay limits](SCIENTIFIC_SEMANTICS_REPAIR.md).
+Run `npm run test:performance` to verify record identities, formulas, classification and coverage. Run `python scripts/verify_performance_v1.py` to recompute metrics from the saved raw arrays.

@@ -111,8 +111,7 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
         <p>MAE = mean(|prediction − observation|); MSE = mean((prediction − observation)²). Improvement (%) = (baseline − after removal) / baseline × 100; N/A for a zero baseline.</p>
         <p>Each metric is classified after averaging raw errors. Threshold: 0.1% of baseline error. Changes below −threshold improve; above +threshold degrade; otherwise no noticeable change. Both metrics must agree for an overall improvement or degradation; a change in only one is named explicitly.</p>
         <p>{isMsg ? 'G0–G6 are latent graph positions, not output variables. Source → target maps to native A[target, source]. Scales are not consecutive time windows.' : 'Graph nodes follow the model variable-channel order. Source → target maps to A[source, target]. Window labels are 1-based; native graph indices are 0-based.'}</p>
-        <p>Offline source: scripts/export_performance_v1.py. Baselines and removals share the same checkpoint, data and runtime; the browser loads stored results. Runtime: {JSON.stringify(data.environment)}.</p>
-        <p>Historical replay: {data.historicalReplay}. {isMsg ? 'The historical CPU/CUDA replay failure remains unresolved. This version recomputes both baseline and removal on CPU; it does not validate historical reproduction. The old frozen-data floor of 0.00002 does not apply here.' : 'Historical replay passed the declared tolerances.'} Cross-environment equivalence is not established.</p>
+        <p>Offline source: versioned checkpoint-derived performance artifacts. Baselines and removals share the same checkpoint, data and runtime; the browser loads stored results. Runtime: {JSON.stringify(data.environment)}.</p>
         <p>Fixed model parameters: <code className="break-all">{JSON.stringify(data.parameters)}</code></p>
       </div>
     </details>
