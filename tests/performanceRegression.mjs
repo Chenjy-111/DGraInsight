@@ -61,7 +61,8 @@ for(let i=0;i<5;i++) {
 }
 assert.ok(!/[\p{Script=Han}]/u.test(fs.readFileSync('src/components/evidence/PerformanceSummary.tsx','utf8')));
 const summarySource=fs.readFileSync('src/components/evidence/PerformanceSummary.tsx','utf8');
-assert.match(summarySource,/after removal − baseline\. Above zero: worse; below zero: better\./);
+assert.match(summarySource,/change \(%\) = \(after removal − baseline\) \/ baseline × 100/);
+assert.match(summarySource,/The gray band is −0\.1% to \+0\.1%/);
 const evaluationSource=fs.readFileSync('src/components/EvaluationWorkspace.tsx','utf8');
 assert.match(evaluationSource,/after removal − baseline\. Above zero: worse; below zero: better\./);
 console.log('Effective-window options match native graph results for all web samples and directed relations: PASS');
