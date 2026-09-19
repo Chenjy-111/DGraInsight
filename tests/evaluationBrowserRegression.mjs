@@ -22,7 +22,12 @@ try {
   await upload(fixture);
   await page.waitForFunction(() => document.querySelector('[data-testid="evaluation-workspace"]')?.textContent.includes('4 graph nodes'));
   assert.equal(await page.getByLabel('Evaluation output',{exact:true}).inputValue(),'-1');
-  const consistency=work.getByTestId('evaluation-consistency');await consistency.waitFor();assert.match(await consistency.innerText(),/n = 2\/2/);assert.match(await consistency.innerText(),/MAE[\s\S]*improved[\s\S]*degraded[\s\S]*little change[\s\S]*MSE/);assert.match(await work.getByTestId('removal-change-chart').innerText(),/ΔMAE = after removal − baseline\. Above zero: worse; below zero: better\./);
+  const consistency=work.getByTestId('evaluation-consistency');await consistency.waitFor();assert.match(await consistency.innerText(),/n = 2\/2/);assert.match(await consistency.innerText(),/MAE[\s\S]*improved[\s\S]*degraded[\s\S]*little change[\s\S]*MSE/);
+  const changeChart=work.getByTestId('removal-change-chart');assert.match(await changeChart.innerText(),/ΔMAE = after removal − baseline\. Above zero: worse; below zero: better\./);
+  await changeChart.getByRole('button',{name:'Across test samples',exact:true}).click();
+  assert.match(await changeChart.innerText(),/MAE change \(%\) = \(after removal − baseline\) \/ baseline × 100/);
+  assert.match(await changeChart.innerText(),/2 matching test samples/);
+  await changeChart.getByRole('button',{name:'By forecast step',exact:true}).click();
   for (const metric of ['mae','mse']) {
     await page.getByLabel('Evaluation metric',{exact:true}).selectOption(metric);
     const rows = await work.locator('[data-change]').evaluateAll(rows => rows.map(row => ({status:row.dataset.change,color:getComputedStyle(row.querySelector('button')).color})));
@@ -42,6 +47,8 @@ try {
   missing.runStatus='partial'; missing.records=missing.records.filter(r=>r.sampleId==='0');
   await upload(missing);
   assert.match(await work.getByTestId('evaluation-consistency').innerText(),/Insufficient data for cross-sample consistency/);
+  await work.getByTestId('removal-change-chart').getByRole('button',{name:'Across test samples',exact:true}).click();
+  assert.match(await work.getByTestId('removal-change-chart').innerText(),/Insufficient data for cross-sample consistency/);
   await page.getByLabel('Evaluation sample',{exact:true}).selectOption('1');
   assert.equal(await work.locator('button[aria-pressed=true]').count(),0);
   assert.match(await work.innerText(),/No stored removal selected/);

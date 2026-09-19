@@ -64,5 +64,7 @@ const summarySource=fs.readFileSync('src/components/evidence/PerformanceSummary.
 assert.match(summarySource,/change \(%\) = \(after removal − baseline\) \/ baseline × 100/);
 assert.match(summarySource,/The gray band is −0\.1% to \+0\.1%/);
 const evaluationSource=fs.readFileSync('src/components/EvaluationWorkspace.tsx','utf8');
-assert.match(evaluationSource,/after removal − baseline\. Above zero: worse; below zero: better\./);
+assert.match(evaluationSource,/after removal − baseline/);
+assert.match(evaluationSource,/Across test samples/);
+assert.match(evaluationSource,/Insufficient data for cross-sample consistency/);
 console.log('Effective-window options match native graph results for all web samples and directed relations: PASS');

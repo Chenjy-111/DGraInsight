@@ -12,6 +12,7 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
   const [output, setOutput] = useState(-1);
   const [relationFilter, setRelationFilter] = useState('');
   const [metric, setMetric] = useState<'mae' | 'mse'>('mae');
+  const [chartAxis, setChartAxis] = useState<'steps' | 'samples'>('steps');
   const record = data.records.find(r => r.id === recordId && r.sampleId === sampleId);
   const values = record ? displayedMetrics(sample, record, output) : null;
   const label = (id: string) => data.nodes.find(n => n.id === id)?.label ?? id;
@@ -34,7 +35,14 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
     const after = calculateMetrics([record!.prediction![t]], [row], output)[metric];
     return { before, after, ...metricChange(before, after) };
   }) : [];
-  const chart = {
+  const crossSamplePoints = record ? data.records.filter(candidate => sameEvaluationRequest(candidate, record)).map(candidate => {
+    const candidateSample = data.samples.find(item => item.id === candidate.sampleId)!;
+    const change = metricChange(candidateSample.baselineMetrics[metric], candidate.metrics[metric]);
+    return { sampleId: candidate.sampleId, before: candidateSample.baselineMetrics[metric], after: candidate.metrics[metric], ...change };
+  }).sort((a, b) => a.sampleId.localeCompare(b.sampleId, undefined, { numeric: true })) : [];
+  const pointColor = (label: string) => label === 'Improved' ? '#16827f' : label === 'Degraded' ? '#c95445' : '#64748b';
+  const zeroLine = { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#475569', type: 'solid' }, data: [{ yAxis: 0 }] };
+  const stepChart = {
     animation: false,
     grid: { top: 45, bottom: 65, left: 80, right: 30 },
     tooltip: { trigger: 'axis', renderMode: 'richText', formatter: (params: { dataIndex: number }[]) => {
@@ -43,9 +51,21 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
     } },
     xAxis: { type: 'category', name: 'Forecast step', nameLocation: 'middle', nameGap: 35, data: steps.map((_, i) => String(i + 1)), axisTick: { alignWithLabel: true } },
     yAxis: { type: 'value', name: `Δ${metric.toUpperCase()}`, splitLine: { lineStyle: { color: '#e2e8f0' } } },
-    series: [{ name: `Δ${metric.toUpperCase()}`, type: 'bar', barMaxWidth: 48,
-      data: steps.map(step => ({ value: step.delta, itemStyle: { color: step.delta > 0 ? '#dc2626' : step.delta < 0 ? '#047857' : '#64748b', borderRadius: 3 } })),
-      markLine: { silent: true, symbol: 'none', label: { show: false }, lineStyle: { color: '#475569', type: 'solid' }, data: [{ yAxis: 0 }] },
+    series: [{ name: `Δ${metric.toUpperCase()}`, type: 'line', smooth: false, showSymbol: true, symbol: 'circle', symbolSize: 7, lineStyle: { color: '#64748b', width: 1.5 },
+      data: steps.map(step => ({ value: step.delta, itemStyle: { color: pointColor(step.label), borderColor: '#fff', borderWidth: 1 } })),
+      markLine: zeroLine,
+    }],
+  };
+  const sampleChart = {
+    animation: false,
+    grid: { top: 45, bottom: 65, left: 90, right: 30 },
+    tooltip: { trigger: 'item', renderMode: 'richText', formatter: (param: { data: { detail: string } }) => param.data.detail },
+    xAxis: { type: 'category', name: 'Test sample', nameLocation: 'middle', nameGap: 35, data: crossSamplePoints.map(point => point.sampleId), axisTick: { alignWithLabel: true } },
+    yAxis: { type: 'value', name: `${metric.toUpperCase()} change (%)`, splitLine: { lineStyle: { color: '#e2e8f0' } } },
+    series: [{ name: `${metric.toUpperCase()} change (%)`, type: 'line', smooth: false, showSymbol: true, symbol: 'circle', symbolSize: 10, lineStyle: { color: '#64748b', width: 1.5 },
+      data: crossSamplePoints.map(point => ({ value: point.percentChange, detail: `Test sample ${point.sampleId}\nBefore: ${fmt(point.before)}\nAfter: ${fmt(point.after)}\nChange: ${fmt(point.percentChange)}%\n${point.label}`, itemStyle: { color: pointColor(point.label), borderColor: '#fff', borderWidth: 1 } })),
+      markLine: zeroLine,
+      markArea: { silent: true, itemStyle: { color: 'rgba(100,116,139,.08)' }, data: [[{ yAxis: -.1 }, { yAxis: .1 }]] },
     }],
   };
   return <div className="mx-auto max-w-[1400px] space-y-5 px-5 py-6" data-testid="evaluation-workspace">
@@ -93,11 +113,13 @@ export function EvaluationWorkspace({ data }: { data: EvaluationResults }) {
       <p className="text-xs leading-relaxed text-ink-500">Each matching sample contributes one stored aggregate MAE and MSE result. Missing removals are excluded from n. Percentages are descriptive and do not use a significance test.</p>
     </section>}
     <section className="card p-5" data-testid="removal-change-chart">
-      <h3 className="text-lg font-semibold">{metric.toUpperCase()} change after edge removal · Sample {sampleId}</h3>
-      {record && <p className="mt-2 text-sm text-slate-600">{relationLabel(record)} · {output < 0 ? 'All outputs (mean)' : data.outputs[output]}</p>}
-      <p className="mt-2 text-sm">Δ{metric.toUpperCase()} = after removal − baseline. Above zero: worse; below zero: better.</p>
+      <h3 className="text-lg font-semibold">{metric.toUpperCase()} change{chartAxis === 'samples' ? ' (%)' : ''} after edge removal{chartAxis === 'steps' ? ` · Sample ${sampleId}` : ''}</h3>
+      {record && <p className="mt-2 text-sm text-slate-600">{relationLabel(record)} · {chartAxis === 'samples' || output < 0 ? 'All outputs (mean)' : data.outputs[output]}</p>}
+      <p className="mt-2 text-sm">{chartAxis === 'samples' ? `${metric.toUpperCase()} change (%) = (after removal − baseline) / baseline × 100. The gray band is −0.1% to +0.1%.` : `Δ${metric.toUpperCase()} = after removal − baseline.`} Above zero: worse; below zero: better.</p>
+      <div className="mt-4 flex flex-wrap gap-2">{([['steps', 'By forecast step'], ['samples', 'Across test samples']] as const).map(([value, text]) => <button key={value} type="button" aria-pressed={chartAxis === value} onClick={() => setChartAxis(value)} className={`rounded-lg border px-4 py-2 text-sm ${chartAxis === value ? 'border-[#16827f] bg-[#edf7f6]' : 'border-line bg-white'}`}>{text}</button>)}{(['mae', 'mse'] as const).map(value => <button key={value} type="button" aria-pressed={metric === value} onClick={() => setMetric(value)} className={`rounded-lg border px-4 py-2 text-sm ${metric === value ? 'border-[#263b59] bg-[#263b59] text-white' : 'border-line bg-white'}`}>{value.toUpperCase()}</button>)}</div>
+      <p className="mt-3 text-sm text-slate-500">{chartAxis === 'steps' ? `Selected sample: each point uses one forecast step${output < 0 ? ` averaged across ${data.outputs.length} outputs` : ` for ${data.outputs[output]}`}.` : `${crossSamplePoints.length} matching test samples: each point uses the stored all-output mean for the same relation, removal protocol and graph contexts.`}</p>
       <div className="mt-4 flex flex-wrap gap-5 text-xs"><span className="text-emerald-700">Improved · lower error</span><span className="text-red-600">Degraded · higher error</span><span className="text-slate-500">No noticeable change</span></div>
-      {raw ? <ReactECharts option={chart} notMerge style={{ height: 360 }}/> : <p className="my-8 text-sm text-slate-500">Forecast-step error changes unavailable: prediction and truth arrays are required.</p>}
+      {chartAxis === 'steps' ? raw ? <ReactECharts option={stepChart} notMerge style={{ height: 360 }}/> : <p className="my-8 text-sm text-slate-500">Forecast-step error changes unavailable: prediction and truth arrays are required.</p> : crossSamplePoints.length >= 2 ? <ReactECharts option={sampleChart} notMerge style={{ height: 360 }}/> : <div className="my-8 rounded-lg bg-amber-50 p-3 text-sm text-amber-900"><b>Insufficient data for cross-sample consistency.</b><p className="mt-1 text-xs">At least 2 matching samples are required; this context has n = {crossSamplePoints.length}.</p></div>}
     </section>
     <details className="card p-5"><summary className="cursor-pointer font-semibold">Data checks, native verification and provenance</summary><p className="mt-3 text-sm">Result format validated. Stored metrics were recomputed wherever prediction and truth arrays were supplied. Model execution and native intervention correctness are separate checks; imported verification statements come from the result producer.</p>{(['identity', 'nativeIntervention'] as const).map(k => <p key={k} className="mt-3 text-sm"><b>{k}: {data.validation[k].status}</b> · {data.validation[k].detail}</p>)}<pre className="mt-4 max-h-72 overflow-auto rounded bg-paper p-3 text-[10px]">{JSON.stringify(data.provenance, null, 2)}</pre></details>
   </div>;
