@@ -48,6 +48,26 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
     const p = points[i];
     return p ? `${p.label} · Baseline ${metric.toUpperCase()}: ${num(p.before)} · After removal: ${num(p.after ?? NaN)} · Δ${metric.toUpperCase()} (after removal − baseline): ${num(errorDelta(p.before, p.after ?? NaN))} · Change: ${pct(changePercent(p.before, p.after ?? NaN))}` : '';
   };
+  const plottedPoints = points.map((p, index) => ({
+    p,
+    index,
+    delta: p.after === undefined ? null : errorDelta(p.before, p.after),
+    direction: p.after === undefined ? 'unavailable' as const : metricDirection(p.before, p.after, data.thresholdFloor),
+  }));
+  const markerData = (direction: 'improved' | 'degraded' | 'unchanged') => plottedPoints.filter(item => item.direction === direction).map(item => ({
+    value: [item.p.x, item.delta, item.index],
+    itemStyle: { shadowBlur: point === item.index || item.p.current ? 5 : 0, shadowColor: point === item.index ? '#e8a33f' : item.p.current ? '#263b59' : 'transparent' },
+  }));
+  const zeroLine = { silent: true, symbol: 'none', data: [{ yAxis: 0 }], lineStyle: { color: '#263b59', type: 'solid' } };
+  const chartSeries = axis === 'samples' ? [
+    { name: 'Improved', type: 'scatter', symbol: 'circle', symbolSize: 8, itemStyle: { color: '#fff', borderColor: '#16827f', borderWidth: 2 }, data: markerData('improved'), markLine: zeroLine },
+    { name: 'Degraded', type: 'scatter', symbol: 'circle', symbolSize: 8, itemStyle: { color: '#fff', borderColor: '#c95445', borderWidth: 2 }, data: markerData('degraded') },
+    { name: 'Little change', type: 'scatter', symbol: 'circle', symbolSize: 8, itemStyle: { color: '#fff', borderColor: '#64748b', borderWidth: 2 }, data: markerData('unchanged') },
+  ] : [{
+    type: 'line', smooth: false, connectNulls: false, showSymbol: true, symbol: 'circle', symbolSize: 6, lineStyle: { color: '#64748b', width: 1.5 },
+    data: plottedPoints.map(item => { const color = item.direction === 'degraded' ? '#c95445' : item.direction === 'improved' ? '#16827f' : item.direction === 'unchanged' ? '#64748b' : '#94a3b8'; return { value: [item.p.x, item.delta, item.index], itemStyle: { color: '#fff', borderColor: color, borderWidth: 2, shadowBlur: point === item.index || item.p.current ? 5 : 0, shadowColor: point === item.index ? '#e8a33f' : item.p.current ? '#263b59' : 'transparent' } }; }),
+    markLine: zeroLine,
+  }];
   const row = (r: Record | undefined, name: string) => <tr key={name}><td>{name}</td><td>{conclusion(sample.baseline, r?.after)}</td>{(['mae', 'mse'] as const).map(m => <Fragment key={m}><td>{num(mean(sample.baseline[m]))} → {num(r ? mean(r.after[m]) : NaN)}</td><td>{pct(changePercent(mean(sample.baseline[m]), r ? mean(r.after[m]) : NaN))}</td></Fragment>)}</tr>;
   const consistencyScopes = [
     { key: `single-${context}`, label: localLabel, context, scope: 'single' as const, selected: true },
@@ -91,14 +111,11 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
       <label className="mb-3 block text-sm">Inspect {axis === 'steps' ? 'forecast step' : 'test sample'}<select aria-label="Error point" className="ml-3 rounded border p-2" value={point ?? ''} onChange={event => setPoint(event.target.value === '' ? null : Number(event.target.value))}><option value="">Select a point</option>{points.map((p,i) => <option key={p.label} value={i} disabled={p.after === undefined}>{p.label}{p.after === undefined ? ' (N/A)' : ''}</option>)}</select></label>
       {chosen ? <ReactECharts key={`${sampleId}:${context}:${source}:${target}:${scope}:${metric}:${axis}`} notMerge option={{
         animation: false, grid: { left: 85, right: 25, bottom: 60, top: 45 },
-        tooltip: { trigger: 'axis', formatter: (p: any) => detail(p[0].dataIndex) },
+        tooltip: { trigger: 'axis', formatter: (params: any) => { const rows = Array.isArray(params) ? params : [params], row = rows.find(item => Array.isArray(item?.value) && Number.isInteger(item.value[2])); return detail(row?.value[2] ?? 0); } },
         xAxis: { type: 'value', name: axis === 'samples' ? 'Test sample index' : 'Forecast step', nameLocation: 'middle', nameGap: 35, min: axis === 'steps' ? 1 : undefined, max: axis === 'steps' ? data.horizon : undefined, minInterval: 1 },
         yAxis: { type: 'value', name: `Δ${metric.toUpperCase()}`, scale: false },
-        series: [{ type: axis === 'samples' ? 'scatter' : 'line', smooth: false, connectNulls: false, showSymbol: true, symbol: 'circle', symbolSize: axis === 'steps' ? 6 : 8, lineStyle: { color: '#64748b', width: 1.5 },
-          data: points.map((p,i) => { const delta = p.after === undefined ? null : errorDelta(p.before, p.after), direction = p.after === undefined ? 'unavailable' : metricDirection(p.before, p.after, data.thresholdFloor), color = direction === 'degraded' ? '#c95445' : direction === 'improved' ? '#16827f' : direction === 'unchanged' ? '#64748b' : '#94a3b8'; return { value: [p.x, delta], itemStyle: { color: '#fff', borderColor: color, borderWidth: 2, shadowBlur: point === i || p.current ? 5 : 0, shadowColor: point === i ? '#e8a33f' : p.current ? '#263b59' : 'transparent' } }; }),
-          markLine: { silent: true, symbol: 'none', data: [{ yAxis: 0 }], lineStyle: { color: '#263b59', type: 'solid' } }
-        }]
-      }} onEvents={{ click: (p: any) => setPoint(p.dataIndex) }} style={{ height: 340 }}/> : <Unavailable text="No error series is available for this scope."/>}
+        series: chartSeries
+      }} onEvents={{ click: (p: any) => setPoint(Array.isArray(p.value) && Number.isInteger(p.value[2]) ? p.value[2] : p.dataIndex) }} style={{ height: 340 }}/> : <Unavailable text="No error series is available for this scope."/>}
       {point !== null && <p role="status" className="text-sm">{detail(point)}</p>}
       {points.some(p => p.after === undefined) && <p className="text-sm text-ink-500">Gaps indicate unavailable removals; no values are imputed.</p>}
     </section>
