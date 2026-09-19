@@ -3,10 +3,10 @@
 ## Recommended walkthrough
 
 1. Open the [live demo](https://chenjy-111.github.io/DGraInsight/).
-2. In DGraFormer, select `HUFL → LUFL` for test sample 0, Window 1. The stored normalized weight is 0.211185 (rank 2); removal increases MAE by about 0.204% and MSE by about 0.345%.
+2. In DGraFormer, select `HUFL → LUFL` for test sample 0, Window 1. The learned weight is 0.211185, the lowest among nine retained relations. Its removal effect ranks second for both MAE and MSE; removal increases MAE by about 0.204% and MSE by about 0.345%.
 3. Switch between single-window and all-relevant-window results, then inspect the forecast-step and cross-sample views. For this relation, 96.4% of available samples show little MAE change and 3.6% degrade under the declared 0.1% descriptive threshold.
 4. Switch to MSGNet. Its graph nodes `G0–G6` are latent graph positions, not ETTh1 variable names; scale indices are native scale contexts, not consecutive time windows.
-5. Inspect the all-scale `G4 → G3` example: MAE and MSE decrease by about 0.106% and 0.152%, with lower MAE in 10 of 14 samples (71.4%).
+5. Inspect the all-scale `G4 → G3` example: MAE and MSE decrease by about 0.106% and 0.152%, with both MAE and MSE improving in 10 of 14 samples (71.4%).
 6. Open **Import Evaluation Results** to inspect the portable `evaluation.v1` path. The browser validates and displays stored results; it does not run the neural model.
 7. Review [`offline_app/examples/stemgnn/`](../offline_app/examples/stemgnn/README.md) for the external-model example. On test sample 9, removing the undirected `US — France` relation degrades MAE by about 4.69% and MSE by about 11.38%.
 8. Use the [`resource manifest`](../offline_app/docs/RESOURCE_MANIFEST.md) to distinguish bundled checkpoints and datasets from the pinned upstream source trees required for a fresh run.

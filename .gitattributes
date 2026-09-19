@@ -1,3 +1,2 @@
 paper_resources/checkpoints/** -text
 paper_resources/data/** binary
-offline_app/examples/stemgnn/base_model_fft_compat.py binary

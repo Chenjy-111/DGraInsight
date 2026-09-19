@@ -9,11 +9,16 @@ RESOURCE_ROOT = ROOT / "paper_resources"
 
 
 class PaperResourceTests(unittest.TestCase):
-    def test_stemgnn_compatibility_module_matches_adapter_identity(self):
-        path = ROOT / "offline_app" / "examples" / "stemgnn" / "base_model_fft_compat.py"
-        self.assertEqual(
-            hashlib.sha256(path.read_bytes()).hexdigest(),
-            "ae87de6c4ed4c011ec35bb28bcea194b291f9b14ed3ae306ef19faac38eb9f25",
+    def test_stemgnn_compatibility_is_generated_not_redistributed(self):
+        adapter_path = ROOT / "offline_app" / "examples" / "stemgnn" / "stemgnn.py"
+        source = adapter_path.read_text(encoding="utf-8")
+        self.assertIn("def apply_fft_compatibility", source)
+        self.assertIn("torch.view_as_real(torch.fft.fft", source)
+        self.assertIn("torch.fft.ifft(torch.view_as_complex", source)
+        self.assertIn("hashlib.sha256(compatible).hexdigest()", source)
+        self.assertFalse(
+            (adapter_path.parent / "base_model_fft_compat.py").exists(),
+            "Modified Microsoft source must not be redistributed",
         )
 
     def test_manifest_files_match_declared_sha256(self):

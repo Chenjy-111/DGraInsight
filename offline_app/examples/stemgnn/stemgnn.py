@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import importlib.util
 import platform
+import types
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +31,17 @@ OFFICIAL_MODEL_SHA256 = "fa247c2036046091c6f68e27967ce45ace3e04ed16bbf2e957cc8df
 COMPATIBLE_MODEL_SHA256 = "ae87de6c4ed4c011ec35bb28bcea194b291f9b14ed3ae306ef19faac38eb9f25"
 KNOWN_CHECKPOINT_SHA256 = "2a8780f6324b60550133721dcf6770200074a34c9e38023f1834cd987925eb5d"
 KNOWN_DATASET_SHA256 = "58bd45956f25d57762982da99b9647d47bec8d1b146d3d255a4b7b314f022c67"
+FFT_COMPATIBILITY_REPLACEMENTS = (
+    (
+        "ffted = torch.rfft(input, 1, onesided=False)",
+        "ffted = torch.view_as_real(torch.fft.fft(input, dim=-1))",
+    ),
+    (
+        "iffted = torch.irfft(time_step_as_inner, 1, onesided=False)",
+        "iffted = torch.fft.ifft(torch.view_as_complex("
+        "time_step_as_inner.contiguous()), dim=-1).real",
+    ),
+)
 
 
 def sha256(path: Path) -> str:
@@ -46,6 +57,26 @@ def resolve(config: dict, value: str) -> Path:
     if path.is_absolute():
         return path.resolve()
     return (Path(config["config_dir"]) / path).resolve()
+
+
+def apply_fft_compatibility(source: str) -> str:
+    """Apply the two mechanical PyTorch API substitutions to verified source."""
+    for original, replacement in FFT_COMPATIBILITY_REPLACEMENTS:
+        if source.count(original) != 1:
+            raise ValueError(
+                "The verified StemGNN source does not contain the expected FFT call"
+            )
+        source = source.replace(original, replacement)
+    return source
+
+
+def build_compatible_model_source(official_model: Path) -> bytes:
+    """Generate the verified compatibility source in memory, never on disk."""
+    source = official_model.read_text(encoding="utf-8")
+    compatible = apply_fft_compatibility(source).replace("\n", "\r\n").encode("utf-8")
+    if hashlib.sha256(compatible).hexdigest() != COMPATIBLE_MODEL_SHA256:
+        raise ValueError("Generated StemGNN compatibility source failed SHA-256 verification")
+    return compatible
 
 
 class StemGNNAdapter(ThinAdapter):
@@ -93,20 +124,13 @@ class StemGNNAdapter(ThinAdapter):
                 "This adapter requires the pinned Microsoft StemGNN model source "
                 f"at revision {OFFICIAL_REVISION}"
             )
-        compatible_model = Path(__file__).with_name("base_model_fft_compat.py")
-        if not compatible_model.is_file() or sha256(compatible_model) != COMPATIBLE_MODEL_SHA256:
-            raise ValueError(
-                "Missing or modified bundled PyTorch-2 FFT compatibility source "
-                f"at {compatible_model}"
-            )
-
-        spec = importlib.util.spec_from_file_location(
-            "dgrainsight_external_stemgnn_model", compatible_model
+        compatible_source = build_compatible_model_source(official_model)
+        module = types.ModuleType("dgrainsight_external_stemgnn_model")
+        module.__file__ = f"{official_model} [DGraInsight PyTorch-2 compatibility]"
+        exec(
+            compile(compatible_source.decode("utf-8"), module.__file__, "exec"),
+            module.__dict__,
         )
-        if spec is None or spec.loader is None:
-            raise ValueError("Could not load the StemGNN compatibility module")
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
         torch.set_num_threads(2)
         self.model = module.Model(
             self.node_count,
@@ -201,7 +225,7 @@ class StemGNNAdapter(ThinAdapter):
                 "sourceRevision": OFFICIAL_REVISION,
                 "sourceRevisionStatus": "verified_by_pinned_model_hash",
                 "sourceHashes": source_hashes,
-                "compatibleModelSha256": sha256(compatible_model),
+                "compatibleModelSha256": hashlib.sha256(compatible_source).hexdigest(),
                 "compatibilityChange": (
                     "Only torch.rfft/torch.irfft were replaced by corresponding "
                     "torch.fft.fft/ifft APIs for current PyTorch."

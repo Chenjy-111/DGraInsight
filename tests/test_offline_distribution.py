@@ -35,11 +35,8 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertTrue((target / 'profiles/msgnet.json').exists())
             self.assertTrue((target / 'profiles/mtgnn.json').exists())
             self.assertTrue((target / 'examples/stemgnn/stemgnn.py').exists())
-            self.assertTrue((target / 'examples/stemgnn/base_model_fft_compat.py').exists())
-            self.assertEqual(
-                (target / 'examples/stemgnn/base_model_fft_compat.py').read_bytes(),
-                (ROOT / 'offline_app/examples/stemgnn/base_model_fft_compat.py').read_bytes(),
-            )
+            self.assertFalse((target / 'examples/stemgnn/base_model_fft_compat.py').exists())
+            self.assertTrue((target / 'examples/stemgnn/THIRD_PARTY_NOTICES.md').exists())
             self.assertTrue((target / 'examples/stemgnn/README.md').exists())
             self.assertTrue((target / 'requirements-core.txt').exists())
             self.assertTrue((target / 'docs/RESOURCE_MANIFEST.md').exists())
@@ -84,7 +81,8 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertIn('dgraudit/evaluation.py', copied)
             self.assertIn('LICENSE', copied)
             self.assertIn('paper_resources/manifest.json', copied)
-            self.assertIn('examples/stemgnn/base_model_fft_compat.py', copied)
+            self.assertNotIn('examples/stemgnn/base_model_fft_compat.py', copied)
+            self.assertIn('examples/stemgnn/THIRD_PARTY_NOTICES.md', copied)
 
 
 if __name__ == '__main__':

@@ -4,9 +4,10 @@ Download `DGraInsight-Offline-Evaluator.zip`, extract it, and double-click `Star
 
 The package contains the current fixed-checkpoint relation-removal workflow, maintained DGraFormer/MSGNet/MTGNN plugins, the generic Thin Adapter contract, the paper-aligned StemGNN adapter example, reference profiles and documentation. It exports portable `evaluation.v1` results for website import.
 
-The StemGNN example now includes the exact hash-verified PyTorch-2 FFT
-compatibility module required by its adapter; reviewers do not need to generate
-or locate that file separately.
+The StemGNN adapter generates its exact hash-verified PyTorch-2 FFT
+compatibility source in memory from the reviewer-supplied pinned upstream file.
+No modified Microsoft source is redistributed; the package includes a dedicated
+third-party notice describing this boundary.
 
 Exact submitted datasets and checkpoints are bundled under `paper_resources/`.
 Python and original model source trees are not bundled. The pinned CPU
