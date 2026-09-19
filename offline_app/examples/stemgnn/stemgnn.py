@@ -93,11 +93,11 @@ class StemGNNAdapter(ThinAdapter):
                 "This adapter requires the pinned Microsoft StemGNN model source "
                 f"at revision {OFFICIAL_REVISION}"
             )
-        compatible_model = self.source_root.parent / "base_model_fft_compat.py"
+        compatible_model = Path(__file__).with_name("base_model_fft_compat.py")
         if not compatible_model.is_file() or sha256(compatible_model) != COMPATIBLE_MODEL_SHA256:
             raise ValueError(
-                "Missing the verified PyTorch-2 FFT compatibility source beside "
-                "the official_stemgnn directory"
+                "Missing or modified bundled PyTorch-2 FFT compatibility source "
+                f"at {compatible_model}"
             )
 
         spec = importlib.util.spec_from_file_location(

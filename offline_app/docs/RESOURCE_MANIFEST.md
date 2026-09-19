@@ -68,6 +68,10 @@ The checkpoint and processed dataset are bundled as
 `paper_resources/data/covid25_daily_2020.csv`. The adapter rejects a declared
 dataset or checkpoint whose hash does not match the selected file. See
 `examples/stemgnn/README.md` and `examples/stemgnn/example_config.json`.
+The verified PyTorch-2 FFT compatibility module is also bundled as
+`examples/stemgnn/base_model_fft_compat.py`; the adapter loads it from its own
+directory and verifies the SHA-256 above. It does not need to be obtained or
+generated separately.
 
 ## Environment boundary
 

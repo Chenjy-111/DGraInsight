@@ -9,6 +9,13 @@ RESOURCE_ROOT = ROOT / "paper_resources"
 
 
 class PaperResourceTests(unittest.TestCase):
+    def test_stemgnn_compatibility_module_matches_adapter_identity(self):
+        path = ROOT / "offline_app" / "examples" / "stemgnn" / "base_model_fft_compat.py"
+        self.assertEqual(
+            hashlib.sha256(path.read_bytes()).hexdigest(),
+            "ae87de6c4ed4c011ec35bb28bcea194b291f9b14ed3ae306ef19faac38eb9f25",
+        )
+
     def test_manifest_files_match_declared_sha256(self):
         manifest = json.loads((RESOURCE_ROOT / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], "paper-resources.v1")

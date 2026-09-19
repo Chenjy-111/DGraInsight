@@ -20,7 +20,8 @@ def build(destination):
         "ADAPTER_GUIDE.md", "adapters/template.py",
         "docs/EVALUATION_GUIDE.md", "docs/OFFLINE_RELEASE_NOTES.md",
         "docs/RESOURCE_MANIFEST.md",
-        "examples/stemgnn/stemgnn.py", "examples/stemgnn/example_config.json",
+        "examples/stemgnn/stemgnn.py", "examples/stemgnn/base_model_fft_compat.py",
+        "examples/stemgnn/example_config.json",
         "examples/stemgnn/README.md",
     ]
     for name in files:
