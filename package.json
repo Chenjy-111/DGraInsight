@@ -10,6 +10,8 @@
     "build": "tsc -b && vite build --config vite.config.ts",
     "test:web-graph-regression": "node tests/webGraphRegression.mjs",
     "test:web-graph": "node tests/webGraphRegression.mjs",
+    "test:web-install": "playwright install chromium",
+    "test:web": "npm run build && node tests/runBrowserRegression.mjs",
     "preview": "vite preview --config vite.config.ts",
     "deploy": "npm run build && gh-pages -d dist",
     "test:performance": "node tests/performanceRegression.mjs",
@@ -46,6 +48,7 @@
     "autoprefixer": "^10.4.19",
     "gh-pages": "^6.1.1",
     "postcss": "^8.4.40",
+    "playwright": "1.55.0",
     "tailwindcss": "^3.4.7",
     "typescript": "^5.5.4",
     "vite": "^5.3.5"

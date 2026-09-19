@@ -9,7 +9,12 @@
 5. Inspect the all-scale `G4 → G3` example: MAE and MSE decrease by about 0.106% and 0.152%, with lower MAE in 10 of 14 samples (71.4%).
 6. Open **Import Evaluation Results** to inspect the portable `evaluation.v1` path. The browser validates and displays stored results; it does not run the neural model.
 7. Review [`offline_app/examples/stemgnn/`](../offline_app/examples/stemgnn/README.md) for the external-model example. On test sample 9, removing the undirected `US — France` relation degrades MAE by about 4.69% and MSE by about 11.38%.
-8. Use the [`resource manifest`](../offline_app/docs/RESOURCE_MANIFEST.md) to distinguish repository-complete checks from checkpoint-backed runs that require declared external resources.
+8. Use the [`resource manifest`](../offline_app/docs/RESOURCE_MANIFEST.md) to distinguish bundled checkpoints and datasets from the pinned upstream source trees required for a fresh run.
+9. Read the [`result authenticity evidence`](RESULT_AUTHENTICITY.md), then run
+   `python scripts/verify_performance_v1.py` to independently recompute every
+   paper-facing DGraFormer and MSGNet MAE/MSE value from the tracked raw arrays.
+10. Run `python -m unittest tests.test_paper_resources` to verify every bundled
+    checkpoint and dataset against the identities recorded by the artifact.
 
 ## Claim-to-code map
 
@@ -17,7 +22,7 @@
 |---|---|---|
 | Interactive native graph contexts | `src/components/ControlStudio.tsx`, `src/components/MsgnetWorkspace.tsx` | `tests/webGraphRegression.mjs` |
 | Before/after MAE and MSE | `src/components/evidence/PerformanceSummary.tsx`, `src/data/performance.ts` | `tests/performanceRegression.mjs`, `tests/performanceBrowserRegression.mjs` |
-| Cross-sample descriptive consistency | `src/components/evidence/CrossSampleConsistency.tsx` | `tests/performanceRegression.mjs` |
+| Cross-sample descriptive consistency | `src/components/evidence/PerformanceSummary.tsx` | `tests/performanceRegression.mjs` |
 | Portable `evaluation.v1` import | `src/data/evaluation.ts`, `offline_app/dgraudit/evaluation.py` | `tests/evaluationRegression.mjs`, `tests/test_evaluation.py` |
 | Model-specific native removal | `offline_app/dgraudit/adapters.py`, `offline_app/dgraudit/evaluation_plugins.py` | evaluator preflight and model-specific verification |
 | Thin Adapter for external models | `offline_app/dgraudit/thin_adapter.py` | `tests/test_thin_adapter.py` |

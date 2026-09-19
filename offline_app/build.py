@@ -27,6 +27,8 @@ def build(destination):
         target = destination / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / name, target)
+    shutil.copy2(ROOT.parent / "LICENSE", destination / "LICENSE")
+    shutil.copytree(ROOT.parent / "paper_resources", destination / "paper_resources")
     (destination / 'profiles').mkdir(parents=True)
     for model in ('dgraformer', 'msgnet', 'mtgnn'):
         shutil.copy2(ROOT / f'profiles/{model}.json', destination / f'profiles/{model}.json')

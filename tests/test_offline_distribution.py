@@ -38,6 +38,14 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertTrue((target / 'examples/stemgnn/README.md').exists())
             self.assertTrue((target / 'requirements-core.txt').exists())
             self.assertTrue((target / 'docs/RESOURCE_MANIFEST.md').exists())
+            self.assertEqual(
+                (target / 'LICENSE').read_bytes(),
+                (ROOT / 'LICENSE').read_bytes(),
+            )
+            self.assertEqual(
+                (target / 'paper_resources/manifest.json').read_bytes(),
+                (ROOT / 'paper_resources/manifest.json').read_bytes(),
+            )
             self.assertFalse((target / 'adapters/agcrn.py').exists())
             self.assertNotIn('agcrn', (target / 'offline.py').read_text(encoding='utf-8').lower())
             help_result = subprocess.run(
@@ -69,6 +77,8 @@ class OfflineDistributionTests(unittest.TestCase):
             self.assertIn('docs/RESOURCE_MANIFEST.md', copied)
             self.assertIn('requirements-core.txt', copied)
             self.assertIn('dgraudit/evaluation.py', copied)
+            self.assertIn('LICENSE', copied)
+            self.assertIn('paper_resources/manifest.json', copied)
 
 
 if __name__ == '__main__':
