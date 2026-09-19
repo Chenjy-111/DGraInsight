@@ -35,7 +35,7 @@ export function EvaluationImport() {
     runGuidedExample();
     setCase({ dataset: 'ETTh1', sampleId: 0, horizon: 96 });
     setDemo('windowIdx', 0);
-    setDemo('selectedEdge', { source: 0, target: 4 });
+    setDemo('selectedEdge', null);
     setDemo('view', 'graph');
     setTimeout(() => document.getElementById('discovery-workspace')?.scrollIntoView({ behavior: 'smooth' }), 0);
   };
