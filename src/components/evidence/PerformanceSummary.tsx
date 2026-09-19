@@ -48,12 +48,13 @@ export function PerformanceSummary({ data, sampleId, context, source, target, re
     const p = points[i];
     return p ? `${p.label} · Baseline ${metric.toUpperCase()}: ${num(p.before)} · After removal: ${num(p.after ?? NaN)} · Δ${metric.toUpperCase()} (after removal − baseline): ${num(errorDelta(p.before, p.after ?? NaN))} · Change: ${pct(changePercent(p.before, p.after ?? NaN))}` : '';
   };
-  const plottedPoints = points.map((p, index) => ({
+  const rawPlottedPoints = points.map((p, index) => ({
     p,
     index,
     delta: p.after === undefined ? null : errorDelta(p.before, p.after),
-    direction: p.after === undefined ? 'unavailable' as const : metricDirection(p.before, p.after, data.thresholdFloor),
   }));
+  const visualThreshold = Math.max(...rawPlottedPoints.map(item => Math.abs(item.delta ?? 0)), 0) * .05;
+  const plottedPoints = rawPlottedPoints.map(item => ({ ...item, direction: item.delta === null ? 'unavailable' as const : item.delta > visualThreshold ? 'degraded' as const : item.delta < -visualThreshold ? 'improved' as const : 'unchanged' as const }));
   const markerData = (direction: 'improved' | 'degraded' | 'unchanged') => plottedPoints.filter(item => item.direction === direction).map(item => ({
     value: [item.p.x, item.delta, item.index],
     itemStyle: { shadowBlur: point === item.index || item.p.current ? 5 : 0, shadowColor: point === item.index ? '#e8a33f' : item.p.current ? '#263b59' : 'transparent' },
